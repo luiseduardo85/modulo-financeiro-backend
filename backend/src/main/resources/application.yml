@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: financeiro-backend
+  profiles:
+    default: local
