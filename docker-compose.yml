@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${DB_NAME:-financeiro}
+      POSTGRES_USER: ${DB_USER:-financeiro}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-financeiro}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - financeiro-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-financeiro} -d ${DB_NAME:-financeiro}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  financeiro-postgres-data:
