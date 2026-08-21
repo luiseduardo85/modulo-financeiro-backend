@@ -15,4 +15,20 @@ POST /api/v1/contas/{id}/movimentacoes/{movimentacaoId}/estornar
 GET /api/v1/contas/{id}/historico
 
 Outros recursos:
-parceiros, categorias, centros-custo, contas-bancarias, formas-financeiras, empresas, filiais, usuarios, perfis, configuracoes-aprovacao, fluxo-caixa, dashboard/financeiro, relatorios e me.
+parceiros, categorias, centros-custo, contas-bancarias, formas-financeiras, companies, branches, usuarios, perfis, configuracoes-aprovacao, fluxo-caixa, dashboard/financeiro, relatorios e me.
+
+## Company / Branch
+
+Os endpoints canônicos deste slice usam inglês:
+
+```text
+POST /api/v1/companies
+GET  /api/v1/companies/{id}
+GET  /api/v1/companies
+POST /api/v1/companies/{companyId}/branches
+GET  /api/v1/companies/{companyId}/branches/{branchId}
+GET  /api/v1/companies/{companyId}/branches
+```
+
+Criações recebem somente `name`. Company responde com `id` e `name`; Branch
+responde com `id`, `companyId` e `name`.

@@ -1,6 +1,6 @@
 # Logical Database Model
 
-Empresa -> Filial
+Company -> Branch
 Empresa -> ContaBancaria
 Empresa -> ContaFinanceira -> ContaFinanceiraParcela -> MovimentacaoFinanceira
 

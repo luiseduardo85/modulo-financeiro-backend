@@ -2,6 +2,8 @@ package com.financeiro.interfaces.rest.error;
 
 import java.time.Instant;
 
+import com.financeiro.idempotency.application.IdempotencyConflictException;
+import com.financeiro.idempotency.application.IdempotencyInProgressException;
 import com.financeiro.interfaces.rest.trace.TraceContext;
 import com.financeiro.interfaces.rest.trace.TraceIdFilter;
 import com.jayway.jsonpath.JsonPath;
@@ -34,7 +36,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest
+@WebMvcTest(controllers = GlobalExceptionHandlerTest.TestController.class)
 @ExtendWith(OutputCaptureExtension.class)
 @Import({
         GlobalExceptionHandler.class,
@@ -92,6 +94,16 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void mapsIdempotencyConflictToStableTechnicalError() throws Exception {
+        assertTechnicalError("idempotency-conflict", 409, "IDEMPOTENCY_KEY_CONFLICT");
+    }
+
+    @Test
+    void mapsIdempotencyInProgressToStableTechnicalError() throws Exception {
+        assertTechnicalError("idempotency-in-progress", 409, "IDEMPOTENCY_REQUEST_IN_PROGRESS");
+    }
+
+    @Test
     void mapsUnexpectedExceptionToSafeInternalErrorWithRequestTraceId(CapturedOutput output) throws Exception {
         MvcResult result = mockMvc.perform(get("/test/errors/unexpected"))
                 .andExpect(status().isInternalServerError())
@@ -146,6 +158,8 @@ class GlobalExceptionHandlerTest {
                 case "conflict" -> new ApiErrorException(ApiErrorType.CONFLICT, "A conflict occurred.");
                 case "semantic-validation" -> new ApiErrorException(
                         ApiErrorType.SEMANTIC_VALIDATION, "The input is semantically invalid.");
+                case "idempotency-conflict" -> new IdempotencyConflictException();
+                case "idempotency-in-progress" -> new IdempotencyInProgressException();
                 case "unexpected" -> new IllegalStateException("sensitive internal detail");
                 default -> new IllegalArgumentException("Unsupported test error type");
             };
