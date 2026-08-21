@@ -8,3 +8,5 @@ logging:
   level:
     root: INFO
     com.financeiro: DEBUG
+  pattern:
+    correlation: "[traceId=%X{traceId:-}] "

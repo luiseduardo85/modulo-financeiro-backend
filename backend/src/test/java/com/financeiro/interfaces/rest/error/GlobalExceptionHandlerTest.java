@@ -2,15 +2,20 @@ package com.financeiro.interfaces.rest.error;
 
 import java.time.Instant;
 
+import com.financeiro.interfaces.rest.trace.TraceContext;
+import com.financeiro.interfaces.rest.trace.TraceIdFilter;
 import com.jayway.jsonpath.JsonPath;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -24,16 +29,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest
+@ExtendWith(OutputCaptureExtension.class)
 @Import({
         GlobalExceptionHandler.class,
         TraceIdProvider.class,
+        TraceIdFilter.class,
         GlobalExceptionHandlerTest.TestController.class
 })
 @ActiveProfiles("test")
@@ -44,7 +50,7 @@ class GlobalExceptionHandlerTest {
 
     @AfterEach
     void clearMdc() {
-        MDC.remove(TraceIdProvider.MDC_KEY);
+        MDC.remove(TraceContext.MDC_KEY);
     }
 
     @Test
@@ -86,36 +92,35 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void mapsUnexpectedExceptionToSafeInternalError() throws Exception {
-        mockMvc.perform(get("/test/errors/unexpected"))
+    void mapsUnexpectedExceptionToSafeInternalErrorWithRequestTraceId(CapturedOutput output) throws Exception {
+        MvcResult result = mockMvc.perform(get("/test/errors/unexpected"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value("INTERNAL_ERROR"))
                 .andExpect(jsonPath("$.message").value("An internal error occurred."))
                 .andExpect(jsonPath("$.details").isEmpty())
                 .andExpect(jsonPath("$.exception").doesNotExist())
                 .andExpect(jsonPath("$.stackTrace").doesNotExist())
-                .andExpect(result -> assertThat(result.getResponse().getContentAsString())
-                        .doesNotContain("sensitive internal detail"));
+                .andExpect(mvcResult -> assertThat(mvcResult.getResponse().getContentAsString())
+                        .doesNotContain("sensitive internal detail"))
+                .andReturn();
+
+        String responseTraceId = result.getResponse().getHeader(TraceContext.HEADER_NAME);
+        String bodyTraceId = JsonPath.read(result.getResponse().getContentAsString(), "$.traceId");
+        assertThat(bodyTraceId).isEqualTo(responseTraceId);
+        assertThat(output).contains("Unexpected REST error", responseTraceId);
     }
 
     @Test
-    void returnsIso8601TimestampAndNullTraceIdWhenAbsent() throws Exception {
+    void returnsIso8601TimestampAndRequestTraceId() throws Exception {
         MvcResult result = mockMvc.perform(get("/test/errors/not-found"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.traceId").value(nullValue()))
                 .andReturn();
 
         String timestamp = JsonPath.read(result.getResponse().getContentAsString(), "$.timestamp");
+        String traceId = JsonPath.read(result.getResponse().getContentAsString(), "$.traceId");
         assertThat(Instant.parse(timestamp)).isNotNull();
-    }
-
-    @Test
-    void returnsTraceIdFromMdc() throws Exception {
-        MDC.put(TraceIdProvider.MDC_KEY, "test-trace-id");
-
-        mockMvc.perform(get("/test/errors/conflict"))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.traceId").value("test-trace-id"));
+        assertThat(traceId).isEqualTo(result.getResponse().getHeader(TraceContext.HEADER_NAME));
+        assertThat(MDC.get(TraceContext.MDC_KEY)).isNull();
     }
 
     private void assertTechnicalError(String endpoint, int expectedStatus, String code) throws Exception {
