@@ -146,6 +146,8 @@ class GlobalExceptionHandlerTest {
                 case "conflict" -> new ApiErrorException(ApiErrorType.CONFLICT, "A conflict occurred.");
                 case "semantic-validation" -> new ApiErrorException(
                         ApiErrorType.SEMANTIC_VALIDATION, "The input is semantically invalid.");
+                case "idempotency-conflict" -> new IdempotencyConflictException();
+                case "idempotency-in-progress" -> new IdempotencyInProgressException();
                 case "unexpected" -> new IllegalStateException("sensitive internal detail");
                 default -> new IllegalArgumentException("Unsupported test error type");
             };

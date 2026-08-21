@@ -31,8 +31,14 @@ Codigos tecnicos iniciais:
 - `MALFORMED_REQUEST`: corpo da requisicao ilegivel ou JSON malformado;
 - `VALIDATION_ERROR`: Bean Validation ou validacao semantica de entrada;
 - `RESOURCE_NOT_FOUND`: recurso nao encontrado;
+- `COMPANY_NOT_FOUND`: Company não encontrada;
+- `BRANCH_NOT_FOUND`: Branch não encontrada no escopo da Company informada;
 - `CONFLICT`: conflito de estado ou concorrencia;
 - `INTERNAL_ERROR`: falha interna inesperada.
+- `IDEMPOTENCY_KEY_REQUIRED`: header `Idempotency-Key` obrigatorio ausente;
+- `INVALID_IDEMPOTENCY_KEY`: header `Idempotency-Key` invalido;
+- `IDEMPOTENCY_KEY_CONFLICT`: chave reutilizada para comando materialmente diferente;
+- `IDEMPOTENCY_REQUEST_IN_PROGRESS`: registro tecnico ainda em processamento.
 
 HTTP:
 200 consulta/ação com resposta

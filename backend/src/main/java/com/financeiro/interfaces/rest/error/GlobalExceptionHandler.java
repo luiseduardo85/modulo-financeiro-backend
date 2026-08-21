@@ -5,12 +5,20 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import com.financeiro.company.application.BranchNotFoundException;
+import com.financeiro.company.application.CompanyNotFoundException;
+import com.financeiro.company.application.InvalidPageRequestException;
+import com.financeiro.company.domain.InvalidNameException;
+import com.financeiro.idempotency.application.IdempotencyConflictException;
+import com.financeiro.idempotency.application.IdempotencyInProgressException;
+import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -59,6 +67,41 @@ public class GlobalExceptionHandler {
                 exception.type().status(),
                 exception.type().code(),
                 exception.getMessage(),
+                List.of());
+    }
+
+    @ExceptionHandler(CompanyNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCompanyNotFound(CompanyNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "COMPANY_NOT_FOUND", exception.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(BranchNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBranchNotFound(BranchNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "BRANCH_NOT_FOUND", exception.getMessage(), List.of());
+    }
+
+    @ExceptionHandler({InvalidPageRequestException.class, InvalidNameException.class,
+            ConstraintViolationException.class, MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ErrorResponse> handleSemanticValidation(Exception exception) {
+        return response(HttpStatus.UNPROCESSABLE_CONTENT, VALIDATION_ERROR,
+                "A requisição contém valores inválidos.", List.of());
+    }
+
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ErrorResponse> handleIdempotencyConflict() {
+        return response(
+                ApiErrorType.IDEMPOTENCY_KEY_CONFLICT.status(),
+                ApiErrorType.IDEMPOTENCY_KEY_CONFLICT.code(),
+                "The idempotency key was already used for a different request.",
+                List.of());
+    }
+
+    @ExceptionHandler(IdempotencyInProgressException.class)
+    public ResponseEntity<ErrorResponse> handleIdempotencyInProgress() {
+        return response(
+                ApiErrorType.IDEMPOTENCY_REQUEST_IN_PROGRESS.status(),
+                ApiErrorType.IDEMPOTENCY_REQUEST_IN_PROGRESS.code(),
+                "The idempotent request is still being processed.",
                 List.of());
     }
 
