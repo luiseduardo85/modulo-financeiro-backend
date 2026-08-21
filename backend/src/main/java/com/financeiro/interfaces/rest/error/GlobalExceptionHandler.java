@@ -5,10 +5,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import com.financeiro.category.application.CategoryNotFoundException;
+import com.financeiro.category.domain.InvalidCategoryNameException;
 import com.financeiro.company.application.BranchNotFoundException;
 import com.financeiro.company.application.CompanyNotFoundException;
 import com.financeiro.company.application.InvalidPageRequestException;
 import com.financeiro.company.domain.InvalidNameException;
+import com.financeiro.costcenter.application.CostCenterNotFoundException;
+import com.financeiro.costcenter.domain.InvalidCostCenterNameException;
 import com.financeiro.idempotency.application.IdempotencyConflictException;
 import com.financeiro.idempotency.application.IdempotencyInProgressException;
 import jakarta.validation.ConstraintViolationException;
@@ -80,7 +84,18 @@ public class GlobalExceptionHandler {
         return response(HttpStatus.NOT_FOUND, "BRANCH_NOT_FOUND", exception.getMessage(), List.of());
     }
 
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCategoryNotFound(CategoryNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "CATEGORY_NOT_FOUND", exception.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(CostCenterNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleCostCenterNotFound(CostCenterNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "COST_CENTER_NOT_FOUND", exception.getMessage(), List.of());
+    }
+
     @ExceptionHandler({InvalidPageRequestException.class, InvalidNameException.class,
+            InvalidCategoryNameException.class, InvalidCostCenterNameException.class,
             ConstraintViolationException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ErrorResponse> handleSemanticValidation(Exception exception) {
         return response(HttpStatus.UNPROCESSABLE_CONTENT, VALIDATION_ERROR,
