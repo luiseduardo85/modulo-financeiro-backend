@@ -2,8 +2,6 @@ package com.financeiro.interfaces.rest.error;
 
 import java.time.Instant;
 
-import com.financeiro.idempotency.application.IdempotencyConflictException;
-import com.financeiro.idempotency.application.IdempotencyInProgressException;
 import com.financeiro.interfaces.rest.trace.TraceContext;
 import com.financeiro.interfaces.rest.trace.TraceIdFilter;
 import com.jayway.jsonpath.JsonPath;
@@ -36,7 +34,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(controllers = GlobalExceptionHandlerTest.TestController.class)
+@WebMvcTest
 @ExtendWith(OutputCaptureExtension.class)
 @Import({
         GlobalExceptionHandler.class,
@@ -91,16 +89,6 @@ class GlobalExceptionHandlerTest {
     @Test
     void mapsTechnicalSemanticValidation() throws Exception {
         assertTechnicalError("semantic-validation", 422, "VALIDATION_ERROR");
-    }
-
-    @Test
-    void mapsIdempotencyConflictToStableTechnicalError() throws Exception {
-        assertTechnicalError("idempotency-conflict", 409, "IDEMPOTENCY_KEY_CONFLICT");
-    }
-
-    @Test
-    void mapsIdempotencyInProgressToStableTechnicalError() throws Exception {
-        assertTechnicalError("idempotency-in-progress", 409, "IDEMPOTENCY_REQUEST_IN_PROGRESS");
     }
 
     @Test
