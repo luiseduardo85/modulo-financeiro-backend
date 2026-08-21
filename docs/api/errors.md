@@ -21,8 +21,10 @@ Contrato base:
 ```
 
 `details` deve ser uma lista vazia quando o erro nao possuir detalhes de campos.
-`timestamp` usa ISO-8601 em UTC. `traceId` permanece presente e pode ser nulo
-quando o contexto de logging ainda nao fornecer um identificador.
+`timestamp` usa ISO-8601 em UTC. Durante uma requisicao HTTP, `traceId` contem o
+UUID gerado pelo servidor para a requisicao e possui o mesmo valor retornado no
+header de resposta `X-Trace-Id`. Identificadores enviados pelo cliente nao sao
+aceitos nem propagados. Fora de um contexto HTTP, `traceId` pode ser nulo.
 
 Codigos tecnicos iniciais:
 
