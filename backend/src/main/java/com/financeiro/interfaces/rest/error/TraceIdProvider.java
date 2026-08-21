@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public final class TraceIdProvider {
 
-    public String currentTraceId() {
-        return MDC.get(TraceContext.MDC_KEY);
-    }
+  public String currentTraceId() {
+    return MDC.get(TraceContext.MDC_KEY);
+  }
 }

@@ -2,7 +2,7 @@ package com.financeiro.idempotency.application;
 
 public final class IdempotencyConflictException extends RuntimeException {
 
-    public IdempotencyConflictException() {
-        super("The idempotency key was already used for a different request.");
-    }
+  public IdempotencyConflictException() {
+    super("The idempotency key was already used for a different request.");
+  }
 }

@@ -26,6 +26,10 @@ Codex must use the repository documentation as the source of truth and must not 
 - Maven Failsafe for integration tests
 - PostgreSQL Testcontainers for persistence integration tests
 
+Java changes must be Spotless compliant. Run `./mvnw spotless:apply` (or
+`.\mvnw.cmd spotless:apply` on Windows) before final validation when Java files
+change.
+
 Authentication is provided by an external service and is intentionally pending.
 
 Do not implement authentication until `docs/architecture/authentication.md` is completed.

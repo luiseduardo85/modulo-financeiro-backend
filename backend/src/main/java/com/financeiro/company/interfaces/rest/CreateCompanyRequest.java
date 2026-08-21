@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotNull;
 
 public record CreateCompanyRequest(@NotNull String name) {
 
-    @JsonAnySetter
-    public void rejectUnknownField(String field, Object value) {
-        throw new IllegalArgumentException("Unknown field: " + field);
-    }
+  @JsonAnySetter
+  public void rejectUnknownField(String field, Object value) {
+    throw new IllegalArgumentException("Unknown field: " + field);
+  }
 }
