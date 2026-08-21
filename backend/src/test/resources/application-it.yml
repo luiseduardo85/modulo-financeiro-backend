@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: financeiro-backend
+
+logging:
+  level:
+    root: INFO
+    com.financeiro: DEBUG

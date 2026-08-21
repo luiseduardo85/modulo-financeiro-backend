@@ -25,3 +25,7 @@ Não criar documentação especulativa apenas para preencher pastas.
 - .github/ISSUE_TEMPLATE/feature.md
 - .github/ISSUE_TEMPLATE/technical.md
 - .github/pull_request_template.md
+
+## TECH-003 preparado
+- backlog/issues/TECH-003-postgresql-local.md
+- development/TECH-003-copilot-plan.md
