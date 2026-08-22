@@ -1,17 +1,20 @@
-# State Machine — ContaFinanceira
+# State Machine — FinancialAccount
 
-NOVO -> RASCUNHO
+NOVO -> DRAFT
 
-RASCUNHO -> PENDENTE_APROVACAO
-RASCUNHO -> APROVADA (sem fluxo de aprovação)
+DRAFT -> PENDING_APPROVAL
+DRAFT -> APPROVED (sem fluxo de aprovação)
 
-PENDENTE_APROVACAO -> APROVADA (aprovar)
-PENDENTE_APROVACAO -> RASCUNHO (rejeitar)
+PENDING_APPROVAL -> APPROVED (aprovar)
+PENDING_APPROVAL -> DRAFT (rejeitar)
 
-APROVADA -> CANCELADA (cancelar sem movimentações + justificativa)
-APROVADA -> QUITADA (todas parcelas com saldo zero)
+APPROVED -> CANCELLED (cancelar sem movimentações + justificativa)
+APPROVED -> SETTLED (todas parcelas com saldo zero)
 
-QUITADA -> APROVADA (estorno que reabre saldo)
+SETTLED -> APPROVED (estorno que reabre saldo)
+
+FUNC-005 implementa somente a criação em `DRAFT`; as transições permanecem
+requisitos de slices futuros.
 
 Estados não persistidos como principal:
 VENCIDA, REJEITADA, PARCIALMENTE_LIQUIDADA, ESTORNADA.

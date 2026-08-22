@@ -40,6 +40,11 @@ Codigos tecnicos iniciais:
 - `COST_CENTER_NOT_FOUND`: CostCenter nao encontrado no escopo da Company informada;
 - `BANK_ACCOUNT_NOT_FOUND`: BankAccount nao encontrada no escopo da Company informada;
 - `PAYMENT_METHOD_NOT_FOUND`: PaymentMethod nao encontrado no escopo da Company informada;
+- `FINANCIAL_ACCOUNT_NOT_FOUND`: FinancialAccount não encontrada no escopo da Company;
+- `PARTNER_INACTIVE`: Partner inativo não pode ser usado em novo lançamento;
+- `PARTNER_ROLE_NOT_ALLOWED`: Partner não possui o papel exigido por `PAYABLE`/`RECEIVABLE`;
+- `CATEGORY_INACTIVE`: Category inativa não pode ser usada em novo lançamento;
+- `COST_CENTER_INACTIVE`: CostCenter inativo não pode ser usado em novo lançamento;
 - `CONFLICT`: conflito de estado ou concorrencia;
 - `INTERNAL_ERROR`: falha interna inesperada.
 - `IDEMPOTENCY_KEY_REQUIRED`: header `Idempotency-Key` obrigatorio ausente;

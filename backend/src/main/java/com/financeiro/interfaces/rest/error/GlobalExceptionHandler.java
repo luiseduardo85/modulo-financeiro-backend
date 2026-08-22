@@ -10,6 +10,14 @@ import com.financeiro.company.application.InvalidPageRequestException;
 import com.financeiro.company.domain.InvalidNameException;
 import com.financeiro.costcenter.application.CostCenterNotFoundException;
 import com.financeiro.costcenter.domain.InvalidCostCenterNameException;
+import com.financeiro.financialaccount.application.CategoryInactiveException;
+import com.financeiro.financialaccount.application.CostCenterInactiveException;
+import com.financeiro.financialaccount.application.FinancialAccountNotFoundException;
+import com.financeiro.financialaccount.application.InvalidFinancialAccountPageException;
+import com.financeiro.financialaccount.application.PartnerInactiveException;
+import com.financeiro.financialaccount.application.PartnerRoleNotAllowedException;
+import com.financeiro.financialaccount.domain.InvalidFinancialAccountException;
+import com.financeiro.financialaccount.domain.InvalidInstallmentException;
 import com.financeiro.idempotency.application.IdempotencyConflictException;
 import com.financeiro.idempotency.application.IdempotencyInProgressException;
 import com.financeiro.partner.application.InvalidPartnerPageException;
@@ -113,6 +121,45 @@ public class GlobalExceptionHandler {
         HttpStatus.NOT_FOUND, "PAYMENT_METHOD_NOT_FOUND", exception.getMessage(), List.of());
   }
 
+  @ExceptionHandler(FinancialAccountNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleFinancialAccountNotFound(
+      FinancialAccountNotFoundException exception) {
+    return response(
+        HttpStatus.NOT_FOUND, "FINANCIAL_ACCOUNT_NOT_FOUND", exception.getMessage(), List.of());
+  }
+
+  @ExceptionHandler(PartnerInactiveException.class)
+  public ResponseEntity<ErrorResponse> handlePartnerInactive(PartnerInactiveException exception) {
+    return response(
+        HttpStatus.UNPROCESSABLE_CONTENT, "PARTNER_INACTIVE", exception.getMessage(), List.of());
+  }
+
+  @ExceptionHandler(PartnerRoleNotAllowedException.class)
+  public ResponseEntity<ErrorResponse> handlePartnerRoleNotAllowed(
+      PartnerRoleNotAllowedException exception) {
+    return response(
+        HttpStatus.UNPROCESSABLE_CONTENT,
+        "PARTNER_ROLE_NOT_ALLOWED",
+        exception.getMessage(),
+        List.of());
+  }
+
+  @ExceptionHandler(CategoryInactiveException.class)
+  public ResponseEntity<ErrorResponse> handleCategoryInactive(CategoryInactiveException exception) {
+    return response(
+        HttpStatus.UNPROCESSABLE_CONTENT, "CATEGORY_INACTIVE", exception.getMessage(), List.of());
+  }
+
+  @ExceptionHandler(CostCenterInactiveException.class)
+  public ResponseEntity<ErrorResponse> handleCostCenterInactive(
+      CostCenterInactiveException exception) {
+    return response(
+        HttpStatus.UNPROCESSABLE_CONTENT,
+        "COST_CENTER_INACTIVE",
+        exception.getMessage(),
+        List.of());
+  }
+
   @ExceptionHandler(PartnerNotFoundException.class)
   public ResponseEntity<ErrorResponse> handlePartnerNotFound(PartnerNotFoundException exception) {
     return response(HttpStatus.NOT_FOUND, "PARTNER_NOT_FOUND", exception.getMessage(), List.of());
@@ -145,6 +192,9 @@ public class GlobalExceptionHandler {
     InvalidPartnerNameException.class,
     InvalidPartnerRolesException.class,
     InvalidPartnerPageException.class,
+    InvalidFinancialAccountException.class,
+    InvalidInstallmentException.class,
+    InvalidFinancialAccountPageException.class,
     ConstraintViolationException.class,
     MethodArgumentTypeMismatchException.class
   })

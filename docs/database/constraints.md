@@ -4,7 +4,7 @@ Usar PK, FK, UNIQUE e NOT NULL para integridade estrutural.
 
 Exemplos:
 - `partner.document` único globalmente e ao menos um de `customer`/`supplier` verdadeiro;
-- conta + número da parcela únicos;
+- `financialAccountId` + `installmentNumber` únicos;
 - permissao.codigo único;
 - associações usuário+empresa e usuário+empresa+perfil sem duplicidade;
 - perfil+permissão sem duplicidade.
@@ -15,3 +15,7 @@ Exemplos:
 - nomes de BankAccount e PaymentMethod nao sao unicos.
 
 Não usar ON DELETE CASCADE indiscriminadamente em dados financeiros.
+
+FinancialAccount possui FKs escalares para Company, Branch, Partner, Category e
+CostCenter opcional. A aplicação valida o escopo de Company para Branch,
+Category e CostCenter; as FKs simples não afirmam essa igualdade entre colunas.

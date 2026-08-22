@@ -4,4 +4,4 @@ Permissão: `CONTA_VISUALIZAR`.
 
 Consulta company-scoped.
 
-API: GET `/api/v1/contas/{id}`.
+API: GET `/api/v1/companies/{companyId}/financial-accounts/{financialAccountId}`.

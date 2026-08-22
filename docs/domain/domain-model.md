@@ -1,20 +1,21 @@
 # Domain Model
 
-## Aggregate principal: ContaFinanceira
-Tipos: PAGAR, RECEBER.
+## Aggregate principal: FinancialAccount
+Tipos técnicos: `PAYABLE`, `RECEIVABLE`.
 
 Referências:
-empresaId, filialId, parceiroId, categoryId, costCenterId.
+`companyId`, `branchId`, `partnerId`, `categoryId`, `costCenterId` opcional.
 
 Campos principais:
-id, tipo, valorTotal, status, dataEmissao, dataCriacao, parcelas.
+No FUNC-005: `id`, `companyId`, `branchId`, `type`, `partnerId`, `categoryId`,
+`costCenterId`, `issueDate`, `totalAmount`, `status` e `installments`.
 
 Comportamentos:
 criar, alterarDados, adicionarParcela, removerParcela, enviarParaAprovacao, finalizarSemAprovacao, aprovar, rejeitar, cancelar, liquidarParcela, estornarMovimentacao, calcularSaldo, estaVencida.
 
-## Parcela
-Entity do Aggregate ContaFinanceira.
-Campos: id, numero, valor, dataVencimento, movimentacoes.
+## Installment
+Entity interna do Aggregate FinancialAccount.
+No FUNC-005: `id`, `installmentNumber`, `dueDate` e `amount`.
 Saldo é derivado.
 
 ## MovimentacaoFinanceira

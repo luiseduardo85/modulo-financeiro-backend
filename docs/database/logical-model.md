@@ -6,9 +6,10 @@ Company -> CostCenter
 Company -> BankAccount
 Company -> PaymentMethod
 BankAccount -> Branch (opcional; restricao a uma unica Branch)
-Empresa -> ContaFinanceira -> ContaFinanceiraParcela -> MovimentacaoFinanceira
+Company -> FinancialAccount -> Installment
 
-ContaFinanceira referencia Partner, Category e CostCenter.
+FinancialAccount referencia Branch, Partner, Category e CostCenter opcional por
+IDs escalares. Movimentação financeira permanece fora do FUNC-005.
 Partner é global e não possui relação com Company.
 
 Usuario -> UsuarioEmpresa -> UsuarioEmpresaPerfil -> Perfil -> PerfilPermissao -> Permissao.

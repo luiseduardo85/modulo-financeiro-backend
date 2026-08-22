@@ -3,7 +3,7 @@
 Nomes físicos usam camelCase e preservam casing no PostgreSQL.
 
 Principais tabelas:
-`"company"`, `"branch"`, `"partner"`, `"category"`, `"costCenter"`, `"bankAccount"`, `"paymentMethod"`, `"contaFinanceira"`, `"contaFinanceiraParcela"`, `"movimentacaoFinanceira"`, `"historicoConta"`, `"usuario"`, `"usuarioEmpresa"`, `"usuarioEmpresaPerfil"`, `"perfil"`, `"perfilPermissao"`, `"permissao"`.
+`"company"`, `"branch"`, `"partner"`, `"category"`, `"costCenter"`, `"bankAccount"`, `"paymentMethod"`, `"financialAccount"`, `"installment"`, `"movimentacaoFinanceira"`, `"historicoConta"`, `"usuario"`, `"usuarioEmpresa"`, `"usuarioEmpresaPerfil"`, `"perfil"`, `"perfilPermissao"`, `"permissao"`.
 
 `"bankAccount"` contem somente `"id"`, `"companyId"`, `"branchId"`, `"name"`
 e `"active"`. `"branchId"` e anulavel. FKs garantem que Company e Branch
@@ -21,8 +21,8 @@ posições alfanuméricas maiúsculas seguidas de dois dígitos verificadores.
 para `"company"."id"`. Nomes têm no máximo 200 caracteres, não podem ser
 brancos após `BTRIM` e não possuem constraints de unicidade.
 
-`"contaFinanceira"` contém, entre outros:
-`"id"`, `"empresaId"`, `"filialId"`, `"parceiroId"`, `"categoryId"`, `"costCenterId"`, `"tipo"`, `"status"`, `"valorTotal"`, `"dataEmissao"`, `"createdAt"`, `"updatedAt"`, `"version"`.
-
-`"contaFinanceiraParcela"` contém `"contaFinanceiraId"`, `"numero"`, `"valor"`, `"dataVencimento"`.
-Saldo não é fonte de verdade persistida.
+`"financialAccount"` contém `"id"`, `"companyId"`, `"branchId"`, `"type"`,
+`"partnerId"`, `"categoryId"`, `"costCenterId"`, `"issueDate"`,
+`"totalAmount"` e `"status"`. `"installment"` contém `"id"`,
+`"financialAccountId"`, `"installmentNumber"`, `"dueDate"` e `"amount"`.
+Valores monetários usam `NUMERIC(19,2)`.

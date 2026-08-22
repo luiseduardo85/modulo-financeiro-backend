@@ -1,18 +1,26 @@
 # Initial API Endpoints
 
-## Conta
-POST /api/v1/contas
-GET /api/v1/contas
-GET /api/v1/contas/{id}
-PUT /api/v1/contas/{id}
-DELETE /api/v1/contas/{id}
-POST /api/v1/contas/{id}/enviar-aprovacao
-POST /api/v1/contas/{id}/aprovar
-POST /api/v1/contas/{id}/rejeitar
-POST /api/v1/contas/{id}/cancelar
-POST /api/v1/contas/{id}/parcelas/{parcelaId}/liquidacoes
-POST /api/v1/contas/{id}/movimentacoes/{movimentacaoId}/estornar
-GET /api/v1/contas/{id}/historico
+## FinancialAccount (FUNC-005)
+POST /api/v1/companies/{companyId}/financial-accounts
+GET /api/v1/companies/{companyId}/financial-accounts
+GET /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
+
+Criação recebe `branchId`, `type`, `partnerId`, `categoryId`, `costCenterId`
+opcional, `issueDate`, `totalAmount` e `installments`. Retorna 201 e `Location`.
+GET por ID retorna o Aggregate completo; listagem retorna somente resumos, sem
+`installments`. O `companyId` da rota é escopo do recurso, não contexto
+autenticado de tenant. FUNC-005 não exige `Idempotency-Key`.
+
+Endpoints futuros, fora de FUNC-005:
+PUT /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
+DELETE /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/submit-for-approval
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/approve
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/reject
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/cancel
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/installments/{installmentId}/settlements
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/movements/{movementId}/reverse
+GET /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/history
 
 Outros recursos:
 partners, categories, cost-centers, bank-accounts, payment-methods, companies, branches, usuarios, perfis, configuracoes-aprovacao, fluxo-caixa, dashboard/financeiro, relatorios e me.

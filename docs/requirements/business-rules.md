@@ -5,41 +5,41 @@
 - RN-CONTA-002: filial é obrigatória.
 - RN-CONTA-003: filial deve pertencer à mesma empresa.
 - RN-CONTA-004: valor total deve ser maior que zero.
-- RN-CONTA-005: deve existir ao menos uma parcela; soma das parcelas = valor total; parcela tem número > 0, valor > 0 e vencimento obrigatório; resíduos de arredondamento vão para a última parcela.
-- RN-CONTA-006: estados persistidos: RASCUNHO, PENDENTE_APROVACAO, APROVADA, QUITADA, CANCELADA.
+- RN-CONTA-005: deve existir ao menos uma Installment; a soma das Installments explícitas = `totalAmount`; número > 0 e único na conta, `amount` > 0 e `dueDate` obrigatório. O cliente fornece valores explícitos e FUNC-005 não aplica resíduo nem arredondamento automático.
+- RN-CONTA-006: estados técnicos persistidos: `DRAFT`, `PENDING_APPROVAL`, `APPROVED`, `SETTLED`, `CANCELLED`.
 - RN-CONTA-007: vencimento não pode ser alterado após aprovação.
 - RN-CONTA-008: vencimento de conta vencida não pode ser alterado.
 - RN-CONTA-009: vencimentos em sábado/domingo são permitidos e não são movidos automaticamente.
 - RN-CONTA-010: renegociação de prazo/valor gera novo lançamento.
-- RN-CONTA-011: RASCUNHO pode ser fisicamente excluído quando elegível; contas efetivas preservam histórico.
+- RN-CONTA-011: `DRAFT` pode ser fisicamente excluído quando elegível; contas efetivas preservam histórico.
 
 ## Aprovação
-- RN-APROVACAO-001: com fluxo aplicável, RASCUNHO -> PENDENTE_APROVACAO.
+- RN-APROVACAO-001: com fluxo aplicável, `DRAFT` -> `PENDING_APPROVAL`.
 - RN-APROVACAO-002: um aprovador válido é suficiente.
 - RN-APROVACAO-003: solicitante não aprova a própria conta.
-- RN-APROVACAO-004: PENDENTE_APROVACAO -> APROVADA.
-- RN-APROVACAO-005: rejeição exige justificativa e volta para RASCUNHO preservando histórico.
-- RN-APROVACAO-006: sem fluxo aplicável, RASCUNHO -> APROVADA.
+- RN-APROVACAO-004: `PENDING_APPROVAL` -> `APPROVED`.
+- RN-APROVACAO-005: rejeição exige justificativa e volta para `DRAFT` preservando histórico.
+- RN-APROVACAO-006: sem fluxo aplicável, `DRAFT` -> `APPROVED`.
 
 ## Cancelamento
 - RN-CANCELAMENTO-001: `CONTA_APROVAR` cobre aprovar, rejeitar e cancelar.
 - RN-CANCELAMENTO-002: justificativa obrigatória.
 - RN-CANCELAMENTO-003: conta com qualquer movimentação efetivada não pode ser cancelada.
-- RN-CANCELAMENTO-004: APROVADA -> CANCELADA.
+- RN-CANCELAMENTO-004: `APPROVED` -> `CANCELLED`.
 
 ## Liquidação
 - RN-LIQUIDACAO-001: liquidação ocorre por parcela.
 - RN-LIQUIDACAO-002: valor > 0 e <= saldo.
-- RN-LIQUIDACAO-003: PAGAR gera PAGAMENTO; RECEBER gera RECEBIMENTO.
+- RN-LIQUIDACAO-003: `PAYABLE` gera pagamento; `RECEIVABLE` gera recebimento.
 - RN-LIQUIDACAO-004: saldo é derivado das movimentações.
-- RN-LIQUIDACAO-005: todas parcelas com saldo zero => APROVADA -> QUITADA.
+- RN-LIQUIDACAO-005: todas parcelas com saldo zero => `APPROVED` -> `SETTLED`.
 
 ## Estorno
 - RN-ESTORNO-001: estorno é nova movimentação vinculada à original.
 - RN-ESTORNO-002: movimentação original não é apagada.
 - RN-ESTORNO-003: estorno parcial permitido.
 - RN-ESTORNO-004: soma dos estornos <= valor original.
-- RN-ESTORNO-005: se saldo voltar a ser positivo, QUITADA -> APROVADA.
+- RN-ESTORNO-005: se saldo voltar a ser positivo, `SETTLED` -> `APPROVED`.
 
 ## Situações derivadas
 - RN-SITUACAO-001: vencida = vencimento anterior a hoje + saldo pendente.
