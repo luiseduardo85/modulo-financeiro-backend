@@ -47,6 +47,7 @@ Codigos tecnicos iniciais:
 - `COST_CENTER_INACTIVE`: CostCenter inativo não pode ser usado em novo lançamento;
 - `CONFLICT`: conflito de estado ou concorrencia;
 - `INTERNAL_ERROR`: falha interna inesperada.
+- `APPROVAL_ACTOR_REQUIRED`: ator atual confiavel indisponivel para uma acao do workflow de aprovacao (HTTP 401);
 - `IDEMPOTENCY_KEY_REQUIRED`: header `Idempotency-Key` obrigatorio ausente;
 - `INVALID_IDEMPOTENCY_KEY`: header `Idempotency-Key` invalido;
 - `IDEMPOTENCY_KEY_CONFLICT`: chave reutilizada para comando materialmente diferente;
@@ -63,3 +64,8 @@ HTTP:
 409 conflito de estado/concorrência
 422 validação semântica
 500 erro interno
+
+`APPROVAL_ACTOR_REQUIRED` formaliza o comportamento fail-closed enquanto a
+integracao com autenticacao externa permanece deferida. Ele nao representa uma
+implementacao de autenticacao, e nenhum campo, header, query ou path fornecido
+pelo cliente pode suprir `ApprovalActorContext`.

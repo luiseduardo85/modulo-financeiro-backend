@@ -1,5 +1,6 @@
 package com.financeiro.financialaccount.infrastructure.persistence;
 
+import com.financeiro.approval.application.ApprovalConflictException;
 import com.financeiro.company.application.PageResult;
 import com.financeiro.financialaccount.application.*;
 import com.financeiro.financialaccount.domain.FinancialAccount;
@@ -8,6 +9,7 @@ import java.util.Optional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -22,6 +24,21 @@ public class JpaFinancialAccountRepositoryAdapter implements FinancialAccountRep
   @Override
   public FinancialAccount save(FinancialAccount value) {
     return toDomain(repository.save(new FinancialAccountJpaEntity(value)));
+  }
+
+  @Override
+  public FinancialAccount updateStatus(FinancialAccount value) {
+    try {
+      var managed =
+          repository
+              .findByCompanyIdAndId(value.companyId(), value.id())
+              .orElseThrow(() -> new IllegalStateException("Managed FinancialAccount is missing"));
+      managed.applyStatus(value.status());
+      repository.flush();
+      return toDomain(managed);
+    } catch (ObjectOptimisticLockingFailureException exception) {
+      throw new ApprovalConflictException(exception);
+    }
   }
 
   @Override

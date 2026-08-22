@@ -13,6 +13,10 @@ Candidatos:
 - PaymentMethod por `companyId` usa `"ixPaymentMethodCompanyId"`;
 - Installment usa a UNIQUE iniciada por `financialAccountId`; FUNC-005 não cria
   índice separado nem consulta por vencimento;
+- ApprovalConfiguration usa índices UNIQUE parciais separados para os escopos
+  Company-wide (`branchId IS NULL`) e por Branch (`branchId IS NOT NULL`);
+- ApprovalRequest usa índice UNIQUE parcial por `financialAccountId` quando
+  `status = 'PENDING'`;
 - movimentação por parcela+data;
 - movimentação original;
 - joins de autorização.

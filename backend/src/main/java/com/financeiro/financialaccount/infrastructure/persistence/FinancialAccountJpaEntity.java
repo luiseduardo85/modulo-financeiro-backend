@@ -46,6 +46,10 @@ class FinancialAccountJpaEntity {
   @Column(name = "`status`", nullable = false, length = 20)
   private FinancialAccountStatus status;
 
+  @Version
+  @Column(name = "`version`", nullable = false)
+  private Long version;
+
   @OneToMany(
       mappedBy = "financialAccount",
       cascade = {CascadeType.PERSIST, CascadeType.MERGE})
@@ -110,5 +114,13 @@ class FinancialAccountJpaEntity {
 
   List<InstallmentJpaEntity> installments() {
     return List.copyOf(installments);
+  }
+
+  void applyStatus(FinancialAccountStatus newStatus) {
+    status = newStatus;
+  }
+
+  Long version() {
+    return version;
   }
 }

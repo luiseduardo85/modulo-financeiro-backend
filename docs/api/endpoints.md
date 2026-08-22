@@ -1,9 +1,12 @@
 # Initial API Endpoints
 
-## FinancialAccount (FUNC-005)
+## FinancialAccount (FUNC-005 / FUNC-006)
 POST /api/v1/companies/{companyId}/financial-accounts
 GET /api/v1/companies/{companyId}/financial-accounts
 GET /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/submit-for-approval
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/approve
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/reject
 
 Criação recebe `branchId`, `type`, `partnerId`, `categoryId`, `costCenterId`
 opcional, `issueDate`, `totalAmount` e `installments`. Retorna 201 e `Location`.
@@ -11,12 +14,13 @@ GET por ID retorna o Aggregate completo; listagem retorna somente resumos, sem
 `installments`. O `companyId` da rota é escopo do recurso, não contexto
 autenticado de tenant. FUNC-005 não exige `Idempotency-Key`.
 
-Endpoints futuros, fora de FUNC-005:
+As ações de FUNC-006 obtêm o ator somente por `ApprovalActorContext`, não exigem
+`Idempotency-Key` e retornam o FinancialAccount completo atualizado. Submit e
+approve não possuem campos de negócio; reject recebe exatamente `justification`.
+
+Endpoints futuros, fora de FUNC-006:
 PUT /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
 DELETE /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
-POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/submit-for-approval
-POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/approve
-POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/reject
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/cancel
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/installments/{installmentId}/settlements
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/movements/{movementId}/reverse

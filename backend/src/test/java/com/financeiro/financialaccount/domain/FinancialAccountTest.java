@@ -150,6 +150,58 @@ class FinancialAccountTest {
     }
   }
 
+  @Test
+  void performsOnlyApprovedApprovalTransitions() {
+    var submitted = rehydrate(FinancialAccountStatus.DRAFT);
+    submitted.submitForApproval();
+    assertThat(submitted.status()).isEqualTo(FinancialAccountStatus.PENDING_APPROVAL);
+
+    var direct = rehydrate(FinancialAccountStatus.DRAFT);
+    direct.approveWithoutWorkflow();
+    assertThat(direct.status()).isEqualTo(FinancialAccountStatus.APPROVED);
+
+    var approved = rehydrate(FinancialAccountStatus.PENDING_APPROVAL);
+    approved.approve();
+    assertThat(approved.status()).isEqualTo(FinancialAccountStatus.APPROVED);
+
+    var rejected = rehydrate(FinancialAccountStatus.PENDING_APPROVAL);
+    rejected.reject();
+    assertThat(rejected.status()).isEqualTo(FinancialAccountStatus.DRAFT);
+  }
+
+  @Test
+  void rejectsEveryApprovalTransitionFromIncompatibleStatuses() {
+    for (var status : FinancialAccountStatus.values()) {
+      if (status != FinancialAccountStatus.DRAFT) {
+        assertThatThrownBy(() -> rehydrate(status).submitForApproval())
+            .isInstanceOf(InvalidFinancialAccountStatusException.class);
+        assertThatThrownBy(() -> rehydrate(status).approveWithoutWorkflow())
+            .isInstanceOf(InvalidFinancialAccountStatusException.class);
+      }
+      if (status != FinancialAccountStatus.PENDING_APPROVAL) {
+        assertThatThrownBy(() -> rehydrate(status).approve())
+            .isInstanceOf(InvalidFinancialAccountStatusException.class);
+        assertThatThrownBy(() -> rehydrate(status).reject())
+            .isInstanceOf(InvalidFinancialAccountStatusException.class);
+      }
+    }
+  }
+
+  private static FinancialAccount rehydrate(FinancialAccountStatus status) {
+    return FinancialAccount.rehydrate(
+        10L,
+        1L,
+        2L,
+        FinancialAccountType.PAYABLE,
+        3L,
+        4L,
+        null,
+        DATE,
+        BigDecimal.TEN,
+        status,
+        List.of(Installment.rehydrate(20L, 1, DATE, BigDecimal.TEN)));
+  }
+
   private static FinancialAccount create(
       Long company,
       Long branch,

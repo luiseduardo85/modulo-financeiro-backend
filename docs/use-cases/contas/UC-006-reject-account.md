@@ -2,6 +2,6 @@
 
 Permissão: `CONTA_APROVAR`.
 
-PENDENTE_APROVACAO -> RASCUNHO. Justificativa obrigatória e histórico preservado.
+`PENDING_APPROVAL` -> `DRAFT`. Justificativa obrigatória, normalizada e persistida em `ApprovalDecision`, com até 500 caracteres. Auto-rejeição é permitida quando o ator é elegível. `ApprovalRequest` anterior permanece `REJECTED`; novo envio cria outro ciclo.
 
-API: POST `/api/v1/contas/{id}/rejeitar`.
+API: POST `/api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/reject`.

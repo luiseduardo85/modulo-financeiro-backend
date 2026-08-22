@@ -6,7 +6,7 @@ Official database: PostgreSQL. Schema evolution: Flyway. Hibernate uses
 ## Naming
 
 Tables, columns, constraints, and indexes use camelCase. Examples:
-`"contaFinanceira"`, `"empresaId"`, and `"dataVencimento"`.
+`"financialAccount"`, `"companyId"`, and `"issueDate"`.
 
 Do not use snake_case. PostgreSQL identifiers containing uppercase characters
 must be quoted.
@@ -20,15 +20,15 @@ Global identifier quoting is not enabled. Every mixed-case PostgreSQL identifier
 must be explicitly quoted in the JPA mapping using Hibernate backticks:
 
 ```java
-@Table(name = "`contaFinanceira`")
-@Column(name = "`empresaId`")
+@Table(name = "`financialAccount`")
+@Column(name = "`companyId`")
 ```
 
 The corresponding Flyway identifiers use PostgreSQL double quotes:
 
 ```sql
-"contaFinanceira"
-"empresaId"
+"financialAccount"
+"companyId"
 ```
 
 The first real entity and migration must include a PostgreSQL integration test

@@ -1,5 +1,8 @@
 package com.financeiro.financialaccount.interfaces.rest;
 
+import com.financeiro.approval.application.*;
+import com.financeiro.approval.interfaces.rest.ApprovalActionRequest;
+import com.financeiro.approval.interfaces.rest.RejectFinancialAccountRequest;
 import com.financeiro.company.interfaces.rest.*;
 import com.financeiro.financialaccount.application.*;
 import jakarta.validation.Valid;
@@ -17,16 +20,25 @@ public class FinancialAccountController {
   private final GetFinancialAccount get;
   private final ListFinancialAccountsByCompany list;
   private final FinancialAccountPageQueryParser pages;
+  private final SubmitFinancialAccountForApproval submitForApproval;
+  private final ApproveFinancialAccount approve;
+  private final RejectFinancialAccount reject;
 
   public FinancialAccountController(
       CreateFinancialAccount create,
       GetFinancialAccount get,
       ListFinancialAccountsByCompany list,
-      FinancialAccountPageQueryParser pages) {
+      FinancialAccountPageQueryParser pages,
+      SubmitFinancialAccountForApproval submitForApproval,
+      ApproveFinancialAccount approve,
+      RejectFinancialAccount reject) {
     this.create = create;
     this.get = get;
     this.list = list;
     this.pages = pages;
+    this.submitForApproval = submitForApproval;
+    this.approve = approve;
+    this.reject = reject;
   }
 
   @PostMapping
@@ -72,5 +84,30 @@ public class FinancialAccountController {
         result.data().stream().map(FinancialAccountSummaryResponse::from).toList(),
         new PageMetaResponse(
             result.page(), result.size(), result.totalElements(), result.totalPages()));
+  }
+
+  @PostMapping("/{financialAccountId}/submit-for-approval")
+  public FinancialAccountResponse submitForApproval(
+      @PathVariable @Positive Long companyId,
+      @PathVariable @Positive Long financialAccountId,
+      @RequestBody(required = false) ApprovalActionRequest request) {
+    return FinancialAccountResponse.from(submitForApproval.execute(companyId, financialAccountId));
+  }
+
+  @PostMapping("/{financialAccountId}/approve")
+  public FinancialAccountResponse approve(
+      @PathVariable @Positive Long companyId,
+      @PathVariable @Positive Long financialAccountId,
+      @RequestBody(required = false) ApprovalActionRequest request) {
+    return FinancialAccountResponse.from(approve.execute(companyId, financialAccountId));
+  }
+
+  @PostMapping("/{financialAccountId}/reject")
+  public FinancialAccountResponse reject(
+      @PathVariable @Positive Long companyId,
+      @PathVariable @Positive Long financialAccountId,
+      @RequestBody RejectFinancialAccountRequest request) {
+    return FinancialAccountResponse.from(
+        reject.execute(companyId, financialAccountId, request.justification()));
   }
 }

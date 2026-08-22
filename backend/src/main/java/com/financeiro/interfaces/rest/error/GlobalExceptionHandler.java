@@ -1,5 +1,13 @@
 package com.financeiro.interfaces.rest.error;
 
+import com.financeiro.approval.application.ApprovalActorUnavailableException;
+import com.financeiro.approval.application.ApprovalConflictException;
+import com.financeiro.approval.application.ApproverNotAllowedException;
+import com.financeiro.approval.application.SelfApprovalNotAllowedException;
+import com.financeiro.approval.domain.InvalidApprovalConfigurationException;
+import com.financeiro.approval.domain.InvalidApprovalDecisionException;
+import com.financeiro.approval.domain.InvalidApprovalRequestException;
+import com.financeiro.approval.domain.InvalidRejectionJustificationException;
 import com.financeiro.bankaccount.application.BankAccountNotFoundException;
 import com.financeiro.bankaccount.domain.InvalidBankAccountNameException;
 import com.financeiro.category.application.CategoryNotFoundException;
@@ -17,6 +25,7 @@ import com.financeiro.financialaccount.application.InvalidFinancialAccountPageEx
 import com.financeiro.financialaccount.application.PartnerInactiveException;
 import com.financeiro.financialaccount.application.PartnerRoleNotAllowedException;
 import com.financeiro.financialaccount.domain.InvalidFinancialAccountException;
+import com.financeiro.financialaccount.domain.InvalidFinancialAccountStatusException;
 import com.financeiro.financialaccount.domain.InvalidInstallmentException;
 import com.financeiro.idempotency.application.IdempotencyConflictException;
 import com.financeiro.idempotency.application.IdempotencyInProgressException;
@@ -160,6 +169,52 @@ public class GlobalExceptionHandler {
         List.of());
   }
 
+  @ExceptionHandler(InvalidFinancialAccountStatusException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidFinancialAccountStatus(
+      InvalidFinancialAccountStatusException exception) {
+    return response(
+        HttpStatus.CONFLICT, "FINANCIAL_ACCOUNT_INVALID_STATUS", exception.getMessage(), List.of());
+  }
+
+  @ExceptionHandler(SelfApprovalNotAllowedException.class)
+  public ResponseEntity<ErrorResponse> handleSelfApprovalNotAllowed(
+      SelfApprovalNotAllowedException exception) {
+    return response(
+        HttpStatus.UNPROCESSABLE_CONTENT,
+        "SELF_APPROVAL_NOT_ALLOWED",
+        exception.getMessage(),
+        List.of());
+  }
+
+  @ExceptionHandler(ApproverNotAllowedException.class)
+  public ResponseEntity<ErrorResponse> handleApproverNotAllowed(
+      ApproverNotAllowedException exception) {
+    return response(
+        HttpStatus.FORBIDDEN, "APPROVER_NOT_ALLOWED", exception.getMessage(), List.of());
+  }
+
+  @ExceptionHandler(InvalidRejectionJustificationException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidRejectionJustification(
+      InvalidRejectionJustificationException exception) {
+    return response(
+        HttpStatus.UNPROCESSABLE_CONTENT,
+        "REJECTION_JUSTIFICATION_REQUIRED",
+        exception.getMessage(),
+        List.of());
+  }
+
+  @ExceptionHandler(ApprovalConflictException.class)
+  public ResponseEntity<ErrorResponse> handleApprovalConflict(ApprovalConflictException exception) {
+    return response(HttpStatus.CONFLICT, "APPROVAL_CONFLICT", exception.getMessage(), List.of());
+  }
+
+  @ExceptionHandler(ApprovalActorUnavailableException.class)
+  public ResponseEntity<ErrorResponse> handleApprovalActorUnavailable(
+      ApprovalActorUnavailableException exception) {
+    return response(
+        HttpStatus.UNAUTHORIZED, "APPROVAL_ACTOR_REQUIRED", exception.getMessage(), List.of());
+  }
+
   @ExceptionHandler(PartnerNotFoundException.class)
   public ResponseEntity<ErrorResponse> handlePartnerNotFound(PartnerNotFoundException exception) {
     return response(HttpStatus.NOT_FOUND, "PARTNER_NOT_FOUND", exception.getMessage(), List.of());
@@ -195,6 +250,9 @@ public class GlobalExceptionHandler {
     InvalidFinancialAccountException.class,
     InvalidInstallmentException.class,
     InvalidFinancialAccountPageException.class,
+    InvalidApprovalConfigurationException.class,
+    InvalidApprovalRequestException.class,
+    InvalidApprovalDecisionException.class,
     ConstraintViolationException.class,
     MethodArgumentTypeMismatchException.class
   })

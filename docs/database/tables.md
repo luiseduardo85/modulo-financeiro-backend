@@ -23,6 +23,12 @@ brancos após `BTRIM` e não possuem constraints de unicidade.
 
 `"financialAccount"` contém `"id"`, `"companyId"`, `"branchId"`, `"type"`,
 `"partnerId"`, `"categoryId"`, `"costCenterId"`, `"issueDate"`,
-`"totalAmount"` e `"status"`. `"installment"` contém `"id"`,
+`"totalAmount"`, `"status"` e `"version"` (controle otimista exclusivamente
+de persistência). `"installment"` contém `"id"`,
 `"financialAccountId"`, `"installmentNumber"`, `"dueDate"` e `"amount"`.
 Valores monetários usam `NUMERIC(19,2)`.
+
+FUNC-006 adiciona `"approvalConfiguration"`, `"approvalRequest"` e
+`"approvalDecision"`. Elas usam IDs escalares e preservam configuração,
+solicitante, decisor e justificativa sem criar tabela genérica de histórico ou
+FK para ator externo.

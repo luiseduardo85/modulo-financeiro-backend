@@ -17,7 +17,7 @@ public record FinancialAccountResponse(
     BigDecimal totalAmount,
     FinancialAccountStatus status,
     List<InstallmentResponse> installments) {
-  static FinancialAccountResponse from(FinancialAccount value) {
+  public static FinancialAccountResponse from(FinancialAccount value) {
     return new FinancialAccountResponse(
         value.id(),
         value.companyId(),

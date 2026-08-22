@@ -7,6 +7,8 @@ import java.util.Optional;
 public interface FinancialAccountRepository {
   FinancialAccount save(FinancialAccount account);
 
+  FinancialAccount updateStatus(FinancialAccount account);
+
   Optional<FinancialAccount> findByCompanyIdAndId(Long companyId, Long financialAccountId);
 
   PageResult<FinancialAccountSummary> findSummaryPageByCompanyId(

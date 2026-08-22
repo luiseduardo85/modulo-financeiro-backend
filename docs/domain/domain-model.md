@@ -13,6 +13,22 @@ No FUNC-005: `id`, `companyId`, `branchId`, `type`, `partnerId`, `categoryId`,
 Comportamentos:
 criar, alterarDados, adicionarParcela, removerParcela, enviarParaAprovacao, finalizarSemAprovacao, aprovar, rejeitar, cancelar, liquidarParcela, estornarMovimentacao, calcularSaldo, estaVencida.
 
+FUNC-006 implementa os comportamentos técnicos explícitos
+`submitForApproval`, `approveWithoutWorkflow`, `approve` e `reject`, sem setter
+genérico de status. O campo `version` é exclusivamente de persistência.
+
+## Approval workflow
+
+`ApprovalConfiguration` possui `id`, `companyId`, `branchId` opcional,
+`financialAccountType` e `approvalRequired`. A configuração de Branch precede
+a Company-wide; ausência significa fluxo desabilitado.
+
+`ApprovalRequest` possui `id`, `financialAccountId`, `requesterActorId` e
+`status` (`PENDING`, `APPROVED`, `REJECTED`). `ApprovalDecision` possui `id`,
+`approvalRequestId`, `actorId`, `decision` (`APPROVED`, `REJECTED`) e
+`rejectionJustification` opcional conforme a decisão. Esses registros preservam
+os ciclos obrigatórios de aprovação, sem substituir o futuro histórico completo.
+
 ## Installment
 Entity interna do Aggregate FinancialAccount.
 No FUNC-005: `id`, `installmentNumber`, `dueDate` e `amount`.

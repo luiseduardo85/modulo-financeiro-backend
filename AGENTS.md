@@ -124,14 +124,11 @@ unless there is a concrete, documented need.
 
 Financial account lifecycle is controlled by domain behavior.
 
-Prefer:
-- `conta.aprovar(...)`
-- `conta.rejeitar(...)`
-- `conta.cancelar(...)`
+Prefer explicit domain transition methods such as `approve()` and `reject()`.
 
 Do not change lifecycle through generic status setters.
 
-Before modifying `ContaFinanceira` lifecycle, read:
+Before modifying `FinancialAccount` lifecycle, read:
 
 - `docs/domain/conta-financeira.md`
 - `docs/domain/state-machine.md`
@@ -139,11 +136,11 @@ Before modifying `ContaFinanceira` lifecycle, read:
 
 Persisted statuses are:
 
-- RASCUNHO
-- PENDENTE_APROVACAO
-- APROVADA
-- QUITADA
-- CANCELADA
+- DRAFT
+- PENDING_APPROVAL
+- APPROVED
+- SETTLED
+- CANCELLED
 
 Do not introduce other persisted main statuses without a documented decision.
 
@@ -160,9 +157,9 @@ Schema evolution:
 Database identifiers use camelCase.
 
 Examples:
-- `"contaFinanceira"`
-- `"empresaId"`
-- `"dataVencimento"`
+- `"financialAccount"`
+- `"companyId"`
+- `"issueDate"`
 
 Do not introduce snake_case.
 

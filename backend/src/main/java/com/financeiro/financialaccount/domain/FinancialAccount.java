@@ -15,7 +15,7 @@ public final class FinancialAccount {
   private final Long costCenterId;
   private final LocalDate issueDate;
   private final BigDecimal totalAmount;
-  private final FinancialAccountStatus status;
+  private FinancialAccountStatus status;
   private final List<Installment> installments;
 
   private FinancialAccount(
@@ -180,5 +180,31 @@ public final class FinancialAccount {
 
   public List<Installment> installments() {
     return installments;
+  }
+
+  public void submitForApproval() {
+    requireStatus(FinancialAccountStatus.DRAFT);
+    status = FinancialAccountStatus.PENDING_APPROVAL;
+  }
+
+  public void approveWithoutWorkflow() {
+    requireStatus(FinancialAccountStatus.DRAFT);
+    status = FinancialAccountStatus.APPROVED;
+  }
+
+  public void approve() {
+    requireStatus(FinancialAccountStatus.PENDING_APPROVAL);
+    status = FinancialAccountStatus.APPROVED;
+  }
+
+  public void reject() {
+    requireStatus(FinancialAccountStatus.PENDING_APPROVAL);
+    status = FinancialAccountStatus.DRAFT;
+  }
+
+  private void requireStatus(FinancialAccountStatus required) {
+    if (status != required) {
+      throw new InvalidFinancialAccountStatusException(status, required);
+    }
   }
 }

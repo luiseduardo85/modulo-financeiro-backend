@@ -5,6 +5,8 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.financeiro.approval.application.*;
+import com.financeiro.approval.domain.InvalidRejectionJustificationException;
 import com.financeiro.category.application.CategoryNotFoundException;
 import com.financeiro.company.application.BranchNotFoundException;
 import com.financeiro.company.application.CompanyNotFoundException;
@@ -41,6 +43,9 @@ class FinancialAccountControllerTest {
   @MockitoBean CreateFinancialAccount create;
   @MockitoBean GetFinancialAccount get;
   @MockitoBean ListFinancialAccountsByCompany list;
+  @MockitoBean SubmitFinancialAccountForApproval submitForApproval;
+  @MockitoBean ApproveFinancialAccount approve;
+  @MockitoBean RejectFinancialAccount reject;
 
   @Test
   void postGetAndListFollowDistinctContractsWithoutIdempotencyHeader() throws Exception {
@@ -239,6 +244,174 @@ class FinancialAccountControllerTest {
   }
 
   @Test
+  void approvalActionRoutesReturnCompleteUpdatedAccountWithoutIdempotencyKey() throws Exception {
+    when(submitForApproval.execute(1L, 100L))
+        .thenReturn(account(FinancialAccountType.PAYABLE, FinancialAccountStatus.PENDING_APPROVAL));
+    when(approve.execute(1L, 100L))
+        .thenReturn(account(FinancialAccountType.PAYABLE, FinancialAccountStatus.APPROVED));
+    when(reject.execute(1L, 100L, "fix data"))
+        .thenReturn(account(FinancialAccountType.PAYABLE, FinancialAccountStatus.DRAFT));
+
+    mvc.perform(post("/api/v1/companies/1/financial-accounts/100/submit-for-approval"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("PENDING_APPROVAL"))
+        .andExpect(jsonPath("$.installments[0].id").value(1001));
+    mvc.perform(post("/api/v1/companies/1/financial-accounts/100/approve"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("APPROVED"))
+        .andExpect(jsonPath("$.version").doesNotExist());
+    mvc.perform(
+            post("/api/v1/companies/1/financial-accounts/100/reject")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"justification\":\"fix data\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("DRAFT"));
+  }
+
+  @Test
+  void submitReturnsCompleteDirectApprovalForDisabledAndAbsentConfiguration() throws Exception {
+    for (String scenario : List.of("disabled", "absent")) {
+      reset(submitForApproval);
+      when(submitForApproval.execute(1L, 100L))
+          .thenReturn(account(FinancialAccountType.PAYABLE, FinancialAccountStatus.APPROVED));
+      mvc.perform(
+              post("/api/v1/companies/1/financial-accounts/100/submit-for-approval")
+                  .header("X-Test-Scenario", scenario))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.status").value("APPROVED"))
+          .andExpect(jsonPath("$.id").value(100))
+          .andExpect(jsonPath("$.installments.length()").value(2))
+          .andExpect(jsonPath("$.installments[0].id").value(1001));
+    }
+  }
+
+  @Test
+  void approvalRoutesValidatePositivePathsAndRejectUntrustedBodyFields() throws Exception {
+    for (String action : List.of("submit-for-approval", "approve", "reject")) {
+      for (String path :
+          List.of(
+              "/api/v1/companies/0/financial-accounts/100/" + action,
+              "/api/v1/companies/-1/financial-accounts/100/" + action,
+              "/api/v1/companies/1/financial-accounts/0/" + action,
+              "/api/v1/companies/1/financial-accounts/-1/" + action)) {
+        var request = post(path);
+        if (action.equals("reject")) {
+          request.contentType(MediaType.APPLICATION_JSON).content("{\"justification\":\"reason\"}");
+        }
+        expectValidation(request);
+      }
+    }
+
+    for (String action : List.of("submit-for-approval", "approve")) {
+      for (String field :
+          List.of(
+              "actorId",
+              "requesterId",
+              "status",
+              "approvalRequired",
+              "configurationId",
+              "unknown")) {
+        mvc.perform(
+                post("/api/v1/companies/1/financial-accounts/100/" + action)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{\"" + field + "\":\"value\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+      }
+    }
+    mvc.perform(
+            post("/api/v1/companies/1/financial-accounts/100/reject")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"justification\":\"reason\",\"actorId\":\"untrusted\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+    mvc.perform(
+            post("/api/v1/companies/1/financial-accounts/100/reject")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"justification\":\"reason\",\"configurationId\":123}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+  }
+
+  @Test
+  void rejectionContractMapsCandidateAndMalformedFailures() throws Exception {
+    when(reject.execute(eq(1L), eq(100L), nullable(String.class)))
+        .thenThrow(new InvalidRejectionJustificationException());
+    for (String body :
+        List.of(
+            "{}",
+            "{\"justification\":null}",
+            "{\"justification\":\" \"}",
+            "{\"justification\":\"" + "a".repeat(501) + "\"}")) {
+      mvc.perform(
+              post("/api/v1/companies/1/financial-accounts/100/reject")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(body))
+          .andExpect(status().isUnprocessableContent())
+          .andExpect(jsonPath("$.code").value("REJECTION_JUSTIFICATION_REQUIRED"))
+          .andExpect(jsonPath("$.traceId").exists());
+    }
+    mvc.perform(
+            post("/api/v1/companies/1/financial-accounts/100/reject")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+  }
+
+  @Test
+  void approvalActionsMapStableWorkflowErrorsWithTraceId() throws Exception {
+    assertApprovalError(
+        submitForApproval,
+        new FinancialAccountNotFoundException(100L),
+        "submit-for-approval",
+        404,
+        "FINANCIAL_ACCOUNT_NOT_FOUND");
+    assertApprovalError(
+        submitForApproval,
+        new InvalidFinancialAccountStatusException(
+            FinancialAccountStatus.APPROVED, FinancialAccountStatus.DRAFT),
+        "submit-for-approval",
+        409,
+        "FINANCIAL_ACCOUNT_INVALID_STATUS");
+    assertApprovalError(
+        approve,
+        new SelfApprovalNotAllowedException(),
+        "approve",
+        422,
+        "SELF_APPROVAL_NOT_ALLOWED");
+    assertApprovalError(
+        approve, new ApproverNotAllowedException(), "approve", 403, "APPROVER_NOT_ALLOWED");
+    assertApprovalError(
+        approve, new ApprovalConflictException(), "approve", 409, "APPROVAL_CONFLICT");
+  }
+
+  @Test
+  void everyApprovalActionMapsUnavailableTrustedActorToStableUnauthorizedContract()
+      throws Exception {
+    when(submitForApproval.execute(1L, 100L)).thenThrow(new ApprovalActorUnavailableException());
+    when(approve.execute(1L, 100L)).thenThrow(new ApprovalActorUnavailableException());
+    when(reject.execute(1L, 100L, "reason")).thenThrow(new ApprovalActorUnavailableException());
+
+    for (String action : List.of("submit-for-approval", "approve")) {
+      mvc.perform(
+              post("/api/v1/companies/1/financial-accounts/100/" + action)
+                  .header("X-Actor-Id", "cannot-bypass"))
+          .andExpect(status().isUnauthorized())
+          .andExpect(jsonPath("$.code").value("APPROVAL_ACTOR_REQUIRED"))
+          .andExpect(jsonPath("$.traceId").exists());
+    }
+    mvc.perform(
+            post("/api/v1/companies/1/financial-accounts/100/reject")
+                .header("X-Actor-Id", "cannot-bypass")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"justification\":\"reason\"}"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.code").value("APPROVAL_ACTOR_REQUIRED"))
+        .andExpect(jsonPath("$.traceId").exists());
+  }
+
+  @Test
   void acceptsPaginationBoundariesAndRejectsValuesOutsideThem() throws Exception {
     when(list.execute(eq(1L), any())).thenReturn(new PageResult<>(List.of(), 0, 1, 0, 0));
     for (String query : List.of("page=0&size=1", "page=0&size=100"))
@@ -302,6 +475,10 @@ class FinancialAccountControllerTest {
   }
 
   private FinancialAccount account(FinancialAccountType type) {
+    return account(type, FinancialAccountStatus.DRAFT);
+  }
+
+  private FinancialAccount account(FinancialAccountType type, FinancialAccountStatus status) {
     return FinancialAccount.rehydrate(
         100L,
         1L,
@@ -312,10 +489,26 @@ class FinancialAccountControllerTest {
         null,
         LocalDate.of(2026, 8, 21),
         new BigDecimal("150.00"),
-        FinancialAccountStatus.DRAFT,
+        status,
         List.of(
             Installment.rehydrate(1001L, 1, LocalDate.of(2026, 9, 10), new BigDecimal("100.00")),
             Installment.rehydrate(1002L, 2, LocalDate.of(2026, 10, 10), new BigDecimal("50.00"))));
+  }
+
+  private void assertApprovalError(
+      Object useCase, RuntimeException exception, String action, int expectedStatus, String code)
+      throws Exception {
+    if (useCase == submitForApproval) {
+      reset(submitForApproval);
+      when(submitForApproval.execute(1L, 100L)).thenThrow(exception);
+    } else {
+      reset(approve);
+      when(approve.execute(1L, 100L)).thenThrow(exception);
+    }
+    mvc.perform(post("/api/v1/companies/1/financial-accounts/100/" + action))
+        .andExpect(status().is(expectedStatus))
+        .andExpect(jsonPath("$.code").value(code))
+        .andExpect(jsonPath("$.traceId").exists());
   }
 
   private FinancialAccountSummary summary() {
