@@ -54,6 +54,7 @@ FUNC-005 FinancialAccount/Installments
 FUNC-006 Approval Workflow
 FUNC-007 Settlement (branch `func/func-007-settlement`)
 FUNC-008 Reversal (branch `func/func-008-reversal`)
+FUNC-009 Financial Account History (branch `func/func-009-financial-history`)
 
 FinancialAccount types: PAYABLE, RECEIVABLE.
 Statuses: DRAFT, PENDING_APPROVAL, APPROVED, SETTLED, CANCELLED.
@@ -98,9 +99,29 @@ UPDATE/DELETE em FinancialMovement).
 V11: coluna `originalMovementId`, FK auto-referenciada sem cascade, `type`
 ampliado para VARCHAR(20), CHECK de consistência tipo/originalMovementId.
 
+## FUNC-009 aprovado
+Histórico/audit trail de FinancialAccount sem event sourcing.
+Endpoint compõe uma timeline a partir de 4 fontes, sem duplicar evidência já
+existente: `FinancialAccountHistory` (somente CREATED e
+APPROVED_WITHOUT_WORKFLOW, os únicos eventos sem evidência própria),
+`ApprovalRequest`/`ApprovalDecision` (submissão/decisão de workflow) e
+`FinancialMovement` (settlement/reversal).
+`actorId` somente quando existe trusted actor real (CREATED nunca tem ator;
+APPROVED_WITHOUT_WORKFLOW usa o ator do ApprovalActorContext do submit).
+Histórico append-only, sem update/delete.
+Ordenação determinística via `createdAt` técnico UTC (DEFAULT now(), não
+mapeado nas Entities JPA) adicionado a approvalRequest/approvalDecision/
+financialMovement, com desempate por fase (criação, aprovação, movimento) e
+ID de origem.
+V12: tabela `financialAccountHistory` + as 3 colunas `createdAt`.
+Company scope validado carregando a FinancialAccount antes de montar a
+timeline.
+
 ## Estado atual
-FUNC-007 e FUNC-008 implementados, revisados e commitados.
-`func/func-008-reversal` (branch atual, contém FUNC-007 + FUNC-008) foi
-pushado para `origin` a pedido explícito do usuário. PR para `main` ainda não
-foi aberto (nenhuma slice de FUNC-002 em diante está mergeada em `main`).
-Próximo passo: FUNC-009 (History).
+FUNC-007, FUNC-008 e FUNC-009 implementados, revisados e commitados.
+`func/func-008-reversal` foi pushado para `origin` a pedido explícito do
+usuário (contém FUNC-007 + FUNC-008); `func/func-009-financial-history`
+(branch atual, criada sobre func-008) ainda não foi pushada. PR para `main`
+ainda não foi aberto (nenhuma slice de FUNC-002 em diante está mergeada em
+`main`).
+Próximo passo: FUNC-010 (Cash Flow).
