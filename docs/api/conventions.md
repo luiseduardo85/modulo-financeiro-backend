@@ -13,6 +13,12 @@ nomes em inglês. Para o slice Company / Branch, os nomes canônicos são
 `Company`, `Branch`, `company`, `branch` e `companyId`. Mensagens apresentadas ao
 usuário podem permanecer em português.
 
+Partner usa `/api/v1/partners`, roles `CUSTOMER`/`SUPPLIER`, aceita CPF e CNPJ
+numérico ou alfanumérico no formato canônico ou convencional. A resposta remove
+pontuação e normaliza letras de CNPJ para maiúsculas; CPF permanece apenas com
+dígitos. Partner é global e não recebe `companyId`. Criação não recebe `id`,
+`active` ou `documentType`; campos desconhecidos são rejeitados neste DTO.
+
 Nos endpoints aninhados de Branch, o `companyId` da rota é apenas escopo do
 recurso enquanto autenticação e autorização estiverem diferidas. Ele ainda não é
 um contexto de tenant autenticado e confiável. O corpo de criação de Branch não

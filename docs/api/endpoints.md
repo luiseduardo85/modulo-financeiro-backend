@@ -15,7 +15,7 @@ POST /api/v1/contas/{id}/movimentacoes/{movimentacaoId}/estornar
 GET /api/v1/contas/{id}/historico
 
 Outros recursos:
-parceiros, categorias, centros-custo, bank-accounts, payment-methods, companies, branches, usuarios, perfis, configuracoes-aprovacao, fluxo-caixa, dashboard/financeiro, relatorios e me.
+partners, categories, cost-centers, bank-accounts, payment-methods, companies, branches, usuarios, perfis, configuracoes-aprovacao, fluxo-caixa, dashboard/financeiro, relatorios e me.
 
 ## BankAccount / PaymentMethod
 
@@ -33,6 +33,29 @@ POST /api/v1/companies/{companyId}/payment-methods/{paymentMethodId}/deactivate
 BankAccount recebe `name` e `branchId` opcional; PaymentMethod recebe somente
 `name`. O `companyId` da rota e escopo do recurso, nao contexto autenticado de
 tenant. Criacao retorna 201 e `Location`; demais operacoes retornam 200.
+
+## Category / CostCenter
+
+```text
+POST /api/v1/companies/{companyId}/categories
+GET  /api/v1/companies/{companyId}/categories
+GET  /api/v1/companies/{companyId}/categories/{categoryId}
+POST /api/v1/companies/{companyId}/categories/{categoryId}/deactivate
+POST /api/v1/companies/{companyId}/cost-centers
+GET  /api/v1/companies/{companyId}/cost-centers
+GET  /api/v1/companies/{companyId}/cost-centers/{costCenterId}
+POST /api/v1/companies/{companyId}/cost-centers/{costCenterId}/deactivate
+```
+
+Criacoes recebem somente `name`. O `companyId` da rota e apenas escopo do
+recurso e ainda nao representa contexto de tenant autenticado.
+
+## Partner
+
+POST /api/v1/partners
+GET /api/v1/partners/{id}
+GET /api/v1/partners
+POST /api/v1/partners/{id}/deactivate
 
 ## Company / Branch
 

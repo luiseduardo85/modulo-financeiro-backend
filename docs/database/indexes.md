@@ -5,8 +5,9 @@
 Candidatos:
 - conta por empresa+status;
 - empresa+filial;
-- parceiro;
-- categoria;
+- Partner usa somente o índice criado pela constraint UNIQUE de documento neste slice;
+- Category por `companyId` usa `"ixCategoryCompanyId"`;
+- CostCenter por `companyId` usa `"ixCostCenterCompanyId"`;
 - BankAccount por `companyId` usa `"ixBankAccountCompanyId"`; nao ha indice de
   `branchId` porque o slice nao consulta por esse campo;
 - PaymentMethod por `companyId` usa `"ixPaymentMethodCompanyId"`;

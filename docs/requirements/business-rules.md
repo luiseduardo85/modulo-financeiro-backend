@@ -45,12 +45,19 @@
 - RN-SITUACAO-001: vencida = vencimento anterior a hoje + saldo pendente.
 - RN-SITUACAO-002: liquidação parcial/total é derivada, não status principal.
 
-## Parceiro
-- RN-PARCEIRO-001: parceiro é global.
-- RN-PARCEIRO-002: CPF/CNPJ normalizado e validado.
+## Partner
+- RN-PARCEIRO-001: Partner é global e não pertence a Company.
+- RN-PARCEIRO-002: CPF e CNPJ normalizados e validados; CNPJ aceita tanto o
+  formato legado numérico quanto o formato alfanumérico oficial.
 - RN-PARCEIRO-003: documento único globalmente.
-- RN-PARCEIRO-004: pode ser CLIENTE, FORNECEDOR ou ambos.
+- RN-PARCEIRO-004: pode ser CUSTOMER, SUPPLIER ou ambos.
 - RN-PARCEIRO-005: inativo não entra em novos lançamentos; histórico permanece.
+
+## Category / CostCenter
+- RN-CADASTRO-001: Category e CostCenter pertencem a exatamente uma Company.
+- RN-CADASTRO-002: ambos sao compartilhados entre PAYABLE e RECEIVABLE, sem campo de tipo financeiro.
+- RN-CADASTRO-003: nomes duplicados sao permitidos na mesma Company.
+- RN-CADASTRO-004: inativos nao entram em novos lancamentos; referencias historicas permanecem visiveis.
 
 ## Empresa / Filial
 - RN-EMPRESA-001: usuário pode acessar múltiplas empresas.

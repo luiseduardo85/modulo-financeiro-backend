@@ -33,6 +33,11 @@ Codigos tecnicos iniciais:
 - `RESOURCE_NOT_FOUND`: recurso nao encontrado;
 - `COMPANY_NOT_FOUND`: Company não encontrada;
 - `BRANCH_NOT_FOUND`: Branch não encontrada no escopo da Company informada;
+- `PARTNER_NOT_FOUND`: Partner não encontrado;
+- `PARTNER_DOCUMENT_ALREADY_EXISTS`: documento de Partner já cadastrado globalmente;
+- `INVALID_PARTNER_DOCUMENT`: CPF/CNPJ inválido;
+- `CATEGORY_NOT_FOUND`: Category nao encontrada no escopo da Company informada;
+- `COST_CENTER_NOT_FOUND`: CostCenter nao encontrado no escopo da Company informada;
 - `BANK_ACCOUNT_NOT_FOUND`: BankAccount nao encontrada no escopo da Company informada;
 - `PAYMENT_METHOD_NOT_FOUND`: PaymentMethod nao encontrado no escopo da Company informada;
 - `CONFLICT`: conflito de estado ou concorrencia;

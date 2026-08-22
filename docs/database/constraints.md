@@ -3,7 +3,7 @@
 Usar PK, FK, UNIQUE e NOT NULL para integridade estrutural.
 
 Exemplos:
-- parceiro.documento único globalmente;
+- `partner.document` único globalmente e ao menos um de `customer`/`supplier` verdadeiro;
 - conta + número da parcela únicos;
 - permissao.codigo único;
 - associações usuário+empresa e usuário+empresa+perfil sem duplicidade;

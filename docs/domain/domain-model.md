@@ -4,7 +4,7 @@
 Tipos: PAGAR, RECEBER.
 
 Referências:
-empresaId, filialId, parceiroId, categoriaId, centroCustoId.
+empresaId, filialId, parceiroId, categoryId, costCenterId.
 
 Campos principais:
 id, tipo, valorTotal, status, dataEmissao, dataCriacao, parcelas.
@@ -25,7 +25,7 @@ Campos conceituais: id, tipo, valor, dataHora, paymentMethodId, bankAccountId, u
 Entity de domínio persistida separadamente do carregamento normal do Aggregate.
 
 ## Outros Aggregates/Entities
-Company, Branch, Parceiro, Categoria, CentroCusto, BankAccount, PaymentMethod, Usuario, UsuarioEmpresa, UsuarioEmpresaPerfil, Perfil, PerfilPermissao, Permissao.
+Company, Branch, Partner, Category, CostCenter, BankAccount, PaymentMethod, Usuario, UsuarioEmpresa, UsuarioEmpresaPerfil, Perfil, PerfilPermissao, Permissao.
 
 ## BankAccount / PaymentMethod
 
@@ -43,6 +43,26 @@ Em ambos, o nome usa `String.strip()`, e obrigatorio, nao branco, limitado a 200
 caracteres e pode se repetir. A criacao e ativa; `deactivate()` e a unica
 transicao deste slice. Inativos permanecem consultaveis e listaveis para
 preservar referencias historicas.
+
+## Category / CostCenter
+
+Category e CostCenter sao aggregates independentes e pertencem a exatamente uma
+Company por `companyId` imutavel. Cada um contem somente `id: Long`,
+`companyId: Long`, `name: String` e `active: boolean`. O nome usa
+`String.strip()`, e obrigatorio, nao branco, limitado a 200 caracteres e pode
+ser duplicado. A criacao e ativa e `deactivate()` e a unica transicao deste
+slice. Inativos continuam consultaveis/listaveis para preservar o historico.
+Nao ha codigo, hierarquia ou tipo PAYABLE/RECEIVABLE.
+
+## Partner
+
+Partner é global, sem vínculo com Company, e contém somente `id: Long`,
+`name: String`, `document: Document`, `roles: Set<PartnerRole>` e
+`active: boolean`. `name` usa `String.strip()`, é obrigatório, não branco,
+limitado a 200 caracteres e não único. Roles aceitos: `CUSTOMER` e `SUPPLIER`,
+com ao menos um papel. Criação produz Partner ativo; `deactivate()` é a única
+transição deste slice e não remove o registro. Partner inativo continua
+consultável para preservar referências históricas.
 
 ## Company / Branch
 

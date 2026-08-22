@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 interface SpringDataBranchRepository extends JpaRepository<BranchJpaEntity, Long> {
-    Optional<BranchJpaEntity> findByCompanyIdAndId(Long companyId, Long id);
-    Page<BranchJpaEntity> findByCompanyId(Long companyId, Pageable pageable);
+  Optional<BranchJpaEntity> findByCompanyIdAndId(Long companyId, Long id);
+
+  Page<BranchJpaEntity> findByCompanyId(Long companyId, Pageable pageable);
 }

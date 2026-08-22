@@ -4,20 +4,15 @@ import java.time.Instant;
 
 public interface IdempotencyStore {
 
-    StoredRecord claimOrFind(IdempotencyScope scope, String fingerprint, Instant createdAt);
+  StoredRecord claimOrFind(IdempotencyScope scope, String fingerprint, Instant createdAt);
 
-    void complete(long recordId, String resultReference, Instant completedAt);
+  void complete(long recordId, String resultReference, Instant completedAt);
 
-    enum State {
-        PROCESSING,
-        COMPLETED
-    }
+  enum State {
+    PROCESSING,
+    COMPLETED
+  }
 
-    record StoredRecord(
-            long id,
-            boolean newlyCreated,
-            String fingerprint,
-            State state,
-            String resultReference) {
-    }
+  record StoredRecord(
+      long id, boolean newlyCreated, String fingerprint, State state, String resultReference) {}
 }
