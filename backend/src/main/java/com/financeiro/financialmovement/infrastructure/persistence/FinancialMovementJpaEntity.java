@@ -18,7 +18,7 @@ class FinancialMovementJpaEntity {
   private Long installmentId;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "`type`", nullable = false, length = 10)
+  @Column(name = "`type`", nullable = false, length = 20)
   private FinancialMovementType type;
 
   @Column(name = "`amount`", nullable = false, precision = 19, scale = 2)
@@ -33,6 +33,9 @@ class FinancialMovementJpaEntity {
   @Column(name = "`paymentMethodId`", nullable = false)
   private Long paymentMethodId;
 
+  @Column(name = "`originalMovementId`")
+  private Long originalMovementId;
+
   protected FinancialMovementJpaEntity() {}
 
   FinancialMovementJpaEntity(FinancialMovement movement) {
@@ -43,6 +46,7 @@ class FinancialMovementJpaEntity {
     movementDate = movement.movementDate();
     bankAccountId = movement.bankAccountId();
     paymentMethodId = movement.paymentMethodId();
+    originalMovementId = movement.originalMovementId();
   }
 
   Long id() {
@@ -71,5 +75,9 @@ class FinancialMovementJpaEntity {
 
   Long paymentMethodId() {
     return paymentMethodId;
+  }
+
+  Long originalMovementId() {
+    return originalMovementId;
   }
 }

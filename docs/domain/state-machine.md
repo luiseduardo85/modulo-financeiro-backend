@@ -14,9 +14,12 @@ APPROVED -> SETTLED (todas parcelas com saldo zero)
 SETTLED -> APPROVED (estorno que reabre saldo)
 
 FUNC-006 implementa as quatro transições de aprovação. FUNC-007 implementa
-somente `APPROVED -> SETTLED`, depois de a Application provar por saldo derivado
-que todas as Installments estão zeradas. Cancelamento e `SETTLED -> APPROVED`
-por Reversal permanecem requisitos de slices futuros.
+`APPROVED -> SETTLED`, depois de a Application provar por saldo derivado
+que todas as Installments estão zeradas. FUNC-008 implementa
+`SETTLED -> APPROVED` via reversal, sempre que a FinancialAccount estava
+`SETTLED` no momento do reversal — um reversal bem-sucedido sempre reabre
+saldo em pelo menos uma Installment. Cancelamento permanece requisito de
+slice futuro.
 
 Estados não persistidos como principal:
 VENCIDA, REJEITADA, PARCIALMENTE_LIQUIDADA, ESTORNADA.

@@ -19,6 +19,7 @@ class FinancialMovementTest {
     assertThat(payment.id()).isNull();
     assertThat(payment.type()).isEqualTo(FinancialMovementType.PAYMENT);
     assertThat(payment.amount()).isEqualByComparingTo("100.500");
+    assertThat(payment.originalMovementId()).isNull();
     assertThat(receipt.type()).isEqualTo(FinancialMovementType.RECEIPT);
   }
 
@@ -32,14 +33,14 @@ class FinancialMovementTest {
   void rehydratesOnlyPositivePersistedId() {
     assertThat(
             FinancialMovement.rehydrate(
-                    9L, 1L, FinancialMovementType.PAYMENT, BigDecimal.ONE, DATE, 2L, 3L)
+                    9L, 1L, FinancialMovementType.PAYMENT, BigDecimal.ONE, DATE, 2L, 3L, null)
                 .id())
         .isEqualTo(9L);
     for (Long id : new Long[] {null, 0L, -1L}) {
       assertThatThrownBy(
               () ->
                   FinancialMovement.rehydrate(
-                      id, 1L, FinancialMovementType.PAYMENT, BigDecimal.ONE, DATE, 2L, 3L))
+                      id, 1L, FinancialMovementType.PAYMENT, BigDecimal.ONE, DATE, 2L, 3L, null))
           .isInstanceOf(InvalidFinancialMovementException.class);
     }
   }
@@ -114,6 +115,102 @@ class FinancialMovementTest {
         new BigDecimal[] {null, BigDecimal.ZERO, new BigDecimal("-1"), new BigDecimal("100.501")}) {
       assertInvalid(() -> movement(FinancialMovementType.PAYMENT, invalid));
     }
+  }
+
+  @Test
+  void createRejectsReversalTypes() {
+    for (FinancialMovementType type :
+        new FinancialMovementType[] {
+          FinancialMovementType.REVERSAL_PAYMENT, FinancialMovementType.REVERSAL_RECEIPT
+        }) {
+      assertInvalid(() -> FinancialMovement.create(1L, type, BigDecimal.ONE, DATE, 2L, 3L));
+    }
+  }
+
+  @Test
+  void createReversalRejectsNonReversalTypes() {
+    for (FinancialMovementType type :
+        new FinancialMovementType[] {
+          FinancialMovementType.PAYMENT, FinancialMovementType.RECEIPT
+        }) {
+      assertInvalid(
+          () -> FinancialMovement.createReversal(1L, type, BigDecimal.ONE, DATE, 2L, 3L, 9L));
+    }
+  }
+
+  @Test
+  void createReversalRequiresPositiveOriginalMovementId() {
+    for (Long originalId : new Long[] {null, 0L, -1L}) {
+      assertInvalid(
+          () ->
+              FinancialMovement.createReversal(
+                  1L,
+                  FinancialMovementType.REVERSAL_PAYMENT,
+                  BigDecimal.ONE,
+                  DATE,
+                  2L,
+                  3L,
+                  originalId));
+    }
+  }
+
+  @Test
+  void createReversalProducesReversalMovementReferencingOriginal() {
+    var reversal =
+        FinancialMovement.createReversal(
+            1L, FinancialMovementType.REVERSAL_PAYMENT, new BigDecimal("40.00"), DATE, 2L, 3L, 77L);
+
+    assertThat(reversal.id()).isNull();
+    assertThat(reversal.type()).isEqualTo(FinancialMovementType.REVERSAL_PAYMENT);
+    assertThat(reversal.originalMovementId()).isEqualTo(77L);
+    assertThat(reversal.amount()).isEqualByComparingTo("40.00");
+  }
+
+  @Test
+  void rehydrateRejectsInconsistentTypeAndOriginalMovementId() {
+    assertInvalid(
+        () ->
+            FinancialMovement.rehydrate(
+                9L, 1L, FinancialMovementType.PAYMENT, BigDecimal.ONE, DATE, 2L, 3L, 77L));
+    assertInvalid(
+        () ->
+            FinancialMovement.rehydrate(
+                9L,
+                1L,
+                FinancialMovementType.REVERSAL_PAYMENT,
+                BigDecimal.ONE,
+                DATE,
+                2L,
+                3L,
+                null));
+  }
+
+  @Test
+  void rehydrateAcceptsConsistentReversal() {
+    var reversal =
+        FinancialMovement.rehydrate(
+            9L, 1L, FinancialMovementType.REVERSAL_RECEIPT, BigDecimal.ONE, DATE, 2L, 3L, 77L);
+    assertThat(reversal.originalMovementId()).isEqualTo(77L);
+  }
+
+  @Test
+  void financialMovementTypeMapsToItsReversalCounterpart() {
+    assertThat(FinancialMovementType.PAYMENT.reversalType())
+        .isEqualTo(FinancialMovementType.REVERSAL_PAYMENT);
+    assertThat(FinancialMovementType.RECEIPT.reversalType())
+        .isEqualTo(FinancialMovementType.REVERSAL_RECEIPT);
+    assertThatThrownBy(FinancialMovementType.REVERSAL_PAYMENT::reversalType)
+        .isInstanceOf(InvalidFinancialMovementException.class);
+    assertThatThrownBy(FinancialMovementType.REVERSAL_RECEIPT::reversalType)
+        .isInstanceOf(InvalidFinancialMovementException.class);
+  }
+
+  @Test
+  void financialMovementTypeIsReversalFlagsOnlyReversalTypes() {
+    assertThat(FinancialMovementType.PAYMENT.isReversal()).isFalse();
+    assertThat(FinancialMovementType.RECEIPT.isReversal()).isFalse();
+    assertThat(FinancialMovementType.REVERSAL_PAYMENT.isReversal()).isTrue();
+    assertThat(FinancialMovementType.REVERSAL_RECEIPT.isReversal()).isTrue();
   }
 
   private static FinancialMovement movement(FinancialMovementType type, BigDecimal amount) {

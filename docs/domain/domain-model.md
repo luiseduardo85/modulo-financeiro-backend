@@ -37,13 +37,23 @@ Saldo é derivado.
 ## FinancialMovement
 
 FUNC-007 implementa FinancialMovement como entidade/aggregate separado, sem
-coleção em FinancialAccount. `FinancialMovementType` possui somente `PAYMENT` e
-`RECEIPT`. Campos: `id`, `installmentId`, `type`, `amount`, `movementDate`,
-`bankAccountId` e `paymentMethodId`.
+coleção em FinancialAccount. Campos: `id`, `installmentId`, `type`, `amount`,
+`movementDate`, `bankAccountId`, `paymentMethodId` e `originalMovementId`.
 
 `movementDate` usa `LocalDate`; saldo é derivado por projeções sobre movimentos.
-FinancialMovement é imutável e não possui actor, status, saldo ou campos de
-Reversal. Reversal criará nova movimentação em slice futuro.
+FinancialMovement é imutável, append-only (nunca apagada ou atualizada) e não
+possui actor, status ou saldo persistido.
+
+FUNC-008 amplia `FinancialMovementType` com `REVERSAL_PAYMENT` e
+`REVERSAL_RECEIPT`, além dos `PAYMENT`/`RECEIPT` de FUNC-007. Um reversal é uma
+nova FinancialMovement que referencia a original por `originalMovementId`
+(obrigatório e positivo somente para tipos de reversal; ausente para
+`PAYMENT`/`RECEIPT`). A fábrica `create(...)` continua exclusiva para
+`PAYMENT`/`RECEIPT`; `createReversal(...)` é exclusiva para os tipos de
+reversal. Reversal parcial é permitido, a soma dos reversals de uma
+movimentação nunca supera o valor original, e um reversal nunca referencia
+outro reversal — essa invariante é reforçada tanto no domínio
+(`FinancialMovementType.reversalType()`) quanto na Application.
 
 ## HistoricoConta
 Entity de domínio persistida separadamente do carregamento normal do Aggregate.

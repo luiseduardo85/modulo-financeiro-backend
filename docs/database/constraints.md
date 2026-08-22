@@ -32,3 +32,12 @@ PaymentMethod, sem cascade; CHECK restringe tipo a `PAYMENT`/`RECEIPT` e amount
 positivo. PostgreSQL não prova tipo financeiro, saldo restante, Company/Branch
 das referências ou estado ativo; Application aplica essas regras sob a
 serialização otimista da FinancialAccount.
+
+FUNC-008 adiciona `"originalMovementId"`, uma FK escalar auto-referenciada para
+`"financialMovement"."id"`, sem cascade e sem `ON DELETE`. O CHECK de tipo é
+ampliado para `PAYMENT`/`RECEIPT`/`REVERSAL_PAYMENT`/`REVERSAL_RECEIPT` e um
+novo CHECK (`ckFinancialMovementOriginalConsistency`) garante que
+`originalMovementId` é nulo somente para `PAYMENT`/`RECEIPT` e obrigatório
+somente para os tipos de reversal. PostgreSQL não prova que a movimentação
+referenciada não é, ela própria, um reversal; a Application aplica essa regra.
+Nenhuma linha de FinancialMovement é apagada ou atualizada por UPDATE/DELETE.

@@ -8,6 +8,7 @@ POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/submi
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/approve
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/reject
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/installments/{installmentId}/settlements
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/installments/{installmentId}/settlements/{movementId}/reversals
 
 Criação recebe `branchId`, `type`, `partnerId`, `categoryId`, `costCenterId`
 opcional, `issueDate`, `totalAmount` e `installments`. Retorna 201 e `Location`.
@@ -24,11 +25,18 @@ Settlement em FUNC-007 exige `Idempotency-Key` e recebe exatamente `amount`,
 FinancialMovement imutável criada, com `PAYMENT`/`RECEIPT` derivado do tipo da
 FinancialAccount. Replay concluído retorna a mesma identidade e representação.
 
-Endpoints futuros, fora de FUNC-006:
+Reversal em FUNC-008 exige `Idempotency-Key` e recebe exatamente `amount`,
+`movementDate`, `bankAccountId` e `paymentMethodId`; `movementId` no path
+identifica a FinancialMovement original a reverter. Retorna 201 e representa a
+FinancialMovement de reversal imutável criada, com `REVERSAL_PAYMENT`/
+`REVERSAL_RECEIPT` derivado do tipo da movimentação original e
+`originalMovementId` apontando para ela. Replay concluído retorna a mesma
+identidade e representação.
+
+Endpoints futuros, fora de FUNC-008:
 PUT /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
 DELETE /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/cancel
-POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/movements/{movementId}/reverse
 GET /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/history
 
 Outros recursos:

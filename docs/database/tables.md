@@ -36,4 +36,10 @@ FK para ator externo.
 FUNC-007 adiciona `"financialMovement"` com `"id"`, `"installmentId"`,
 `"type"`, `"amount"`, `"movementDate"`, `"bankAccountId"` e
 `"paymentMethodId"`. Não há companyId/financialAccountId redundantes, saldo,
-ator, status, timestamps ou campos de Reversal.
+ator, status ou timestamps.
+
+FUNC-008 adiciona `"originalMovementId"` (nulo, auto-referenciado) à mesma
+tabela `"financialMovement"` e amplia `"type"` para também aceitar
+`REVERSAL_PAYMENT`/`REVERSAL_RECEIPT`. Não há tabela separada de reversal:
+reversal é uma linha adicional imutável na mesma tabela append-only,
+referenciando a movimentação original pelo próprio ID.

@@ -27,6 +27,23 @@ class FinancialAccountTest {
     }
   }
 
+  @Test
+  void settledAccountCanBeReopenedAndAllOtherStatusesCannot() {
+    var settled = rehydrate(FinancialAccountStatus.SETTLED);
+    settled.reopen();
+    assertThat(settled.status()).isEqualTo(FinancialAccountStatus.APPROVED);
+
+    for (FinancialAccountStatus status :
+        List.of(
+            FinancialAccountStatus.DRAFT,
+            FinancialAccountStatus.PENDING_APPROVAL,
+            FinancialAccountStatus.APPROVED,
+            FinancialAccountStatus.CANCELLED)) {
+      assertThatThrownBy(() -> rehydrate(status).reopen())
+          .isInstanceOf(InvalidFinancialAccountStatusException.class);
+    }
+  }
+
   private static final LocalDate DATE = LocalDate.of(2026, 8, 21);
 
   @Test

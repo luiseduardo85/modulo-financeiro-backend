@@ -13,6 +13,7 @@ public final class FinancialMovement {
   private final LocalDate movementDate;
   private final Long bankAccountId;
   private final Long paymentMethodId;
+  private final Long originalMovementId;
 
   private FinancialMovement(
       Long id,
@@ -21,7 +22,8 @@ public final class FinancialMovement {
       BigDecimal amount,
       LocalDate movementDate,
       Long bankAccountId,
-      Long paymentMethodId) {
+      Long paymentMethodId,
+      Long originalMovementId) {
     if (id != null && id <= 0) invalid("id must be positive");
     positive(installmentId, "installmentId");
     if (type == null) invalid("type is required");
@@ -29,6 +31,11 @@ public final class FinancialMovement {
     if (movementDate == null) invalid("movementDate is required");
     positive(bankAccountId, "bankAccountId");
     positive(paymentMethodId, "paymentMethodId");
+    if (type.isReversal()) {
+      positive(originalMovementId, "originalMovementId");
+    } else if (originalMovementId != null) {
+      invalid("originalMovementId must be absent for a non-reversal type");
+    }
     this.id = id;
     this.installmentId = installmentId;
     this.type = type;
@@ -36,6 +43,7 @@ public final class FinancialMovement {
     this.movementDate = movementDate;
     this.bankAccountId = bankAccountId;
     this.paymentMethodId = paymentMethodId;
+    this.originalMovementId = originalMovementId;
   }
 
   public static FinancialMovement create(
@@ -45,8 +53,30 @@ public final class FinancialMovement {
       LocalDate movementDate,
       Long bankAccountId,
       Long paymentMethodId) {
+    if (type != null && type.isReversal())
+      invalid("create() cannot be used for a reversal type; use createReversal()");
     return new FinancialMovement(
-        null, installmentId, type, amount, movementDate, bankAccountId, paymentMethodId);
+        null, installmentId, type, amount, movementDate, bankAccountId, paymentMethodId, null);
+  }
+
+  public static FinancialMovement createReversal(
+      Long installmentId,
+      FinancialMovementType type,
+      BigDecimal amount,
+      LocalDate movementDate,
+      Long bankAccountId,
+      Long paymentMethodId,
+      Long originalMovementId) {
+    if (type == null || !type.isReversal()) invalid("createReversal() requires a reversal type");
+    return new FinancialMovement(
+        null,
+        installmentId,
+        type,
+        amount,
+        movementDate,
+        bankAccountId,
+        paymentMethodId,
+        originalMovementId);
   }
 
   public static FinancialMovement rehydrate(
@@ -56,10 +86,18 @@ public final class FinancialMovement {
       BigDecimal amount,
       LocalDate movementDate,
       Long bankAccountId,
-      Long paymentMethodId) {
+      Long paymentMethodId,
+      Long originalMovementId) {
     if (id == null) invalid("id is required when rehydrating");
     return new FinancialMovement(
-        id, installmentId, type, amount, movementDate, bankAccountId, paymentMethodId);
+        id,
+        installmentId,
+        type,
+        amount,
+        movementDate,
+        bankAccountId,
+        paymentMethodId,
+        originalMovementId);
   }
 
   public static void validateAmount(BigDecimal value) {
@@ -104,5 +142,9 @@ public final class FinancialMovement {
 
   public Long paymentMethodId() {
     return paymentMethodId;
+  }
+
+  public Long originalMovementId() {
+    return originalMovementId;
   }
 }

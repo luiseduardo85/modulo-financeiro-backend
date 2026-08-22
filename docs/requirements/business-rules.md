@@ -54,6 +54,21 @@
 - RN-ESTORNO-003: estorno parcial permitido.
 - RN-ESTORNO-004: soma dos estornos <= valor original.
 - RN-ESTORNO-005: se saldo voltar a ser positivo, `SETTLED` -> `APPROVED`.
+- RN-ESTORNO-006: um reversal nunca reverte outro reversal; a movimentação
+  referenciada deve ser `PAYMENT` ou `RECEIPT`.
+- RN-ESTORNO-007: `FinancialAccount` deve estar `APPROVED` ou `SETTLED` para
+  aceitar um reversal.
+- RN-ESTORNO-008: BankAccount e PaymentMethod do reversal seguem as mesmas
+  regras de FUNC-007 (obrigatórios, Company-scoped, ativos; BankAccount
+  restrita a Branch somente pode ser usada pela mesma Branch da
+  FinancialAccount) e podem diferir dos usados na movimentação original.
+- RN-ESTORNO-009: `movementDate` do reversal é `LocalDate` obrigatório, sem
+  default ou limitação automática de passado/futuro.
+- RN-ESTORNO-010: reversal exige TECH-010 com operação
+  `REVERSE_FINANCIAL_MOVEMENT` e reutiliza a mesma serialização otimista da
+  FinancialAccount usada por FUNC-007, para impedir over-reversal concorrente.
+- RN-ESTORNO-011: a movimentação efetiva nunca é apagada nem atualizada;
+  reversal é sempre uma nova linha append-only.
 
 ## Situações derivadas
 - RN-SITUACAO-001: vencida = vencimento anterior a hoje + saldo pendente.

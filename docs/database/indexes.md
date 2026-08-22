@@ -19,7 +19,9 @@ Candidatos:
   `status = 'PENDING'`;
 - FinancialMovement usa `"ixFinancialMovementInstallmentDate"` por
   `installmentId`, `movementDate`, `id` para somas e acesso por Installment;
-- movimentação original;
+- FinancialMovement usa `"ixFinancialMovementOriginalMovementId"`, um índice
+  parcial por `originalMovementId` somente para linhas de reversal, para somar
+  o saldo já revertido de uma movimentação original;
 - joins de autorização.
 
 Nomes também usam camelCase.

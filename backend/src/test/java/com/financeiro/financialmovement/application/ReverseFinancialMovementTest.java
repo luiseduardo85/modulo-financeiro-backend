@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.dao.OptimisticLockingFailureException;
 
-class SettleInstallmentTest {
+class ReverseFinancialMovementTest {
   private static final LocalDate DATE = LocalDate.of(2026, 8, 22);
   private final FinancialIdempotencyService idempotency = mock(FinancialIdempotencyService.class);
   private final FinancialAccountRepository accounts = mock(FinancialAccountRepository.class);
@@ -34,8 +34,8 @@ class SettleInstallmentTest {
   private final SettlementBalanceRepository balances = mock(SettlementBalanceRepository.class);
   private final BankAccountRepository bankAccounts = mock(BankAccountRepository.class);
   private final PaymentMethodRepository paymentMethods = mock(PaymentMethodRepository.class);
-  private final SettleInstallment useCase =
-      new SettleInstallment(
+  private final ReverseFinancialMovement useCase =
+      new ReverseFinancialMovement(
           idempotency, accounts, movements, balances, bankAccounts, paymentMethods);
 
   @BeforeEach
@@ -44,63 +44,66 @@ class SettleInstallmentTest {
     when(accounts.findByCompanyIdAndId(1L, 10L))
         .thenReturn(
             Optional.of(account(FinancialAccountType.PAYABLE, FinancialAccountStatus.APPROVED)));
+    when(movements.findByScopeAndId(1L, 10L, 20L, 50L))
+        .thenReturn(Optional.of(originalMovement(FinancialMovementType.PAYMENT, "100.00")));
     when(bankAccounts.findByCompanyIdAndId(1L, 30L))
         .thenReturn(Optional.of(BankAccount.rehydrate(30L, 1L, null, "Bank", true)));
     when(paymentMethods.findByCompanyIdAndId(1L, 40L))
         .thenReturn(Optional.of(PaymentMethod.rehydrate(40L, 1L, "PIX", true)));
-    when(balances.settledAmountByInstallmentId(20L)).thenReturn(BigDecimal.ZERO);
-    when(balances.hasOpenInstallments(10L)).thenReturn(true);
+    when(balances.reversedAmountByOriginalMovementId(50L)).thenReturn(BigDecimal.ZERO);
     when(movements.save(any())).thenAnswer(invocation -> persisted(invocation.getArgument(0)));
   }
 
   @Test
-  void derivesPaymentAndReceiptFromAccountType() {
-    assertThat(useCase.execute(command("40.00")).type()).isEqualTo(FinancialMovementType.PAYMENT);
-    reset(movements);
-    when(accounts.findByCompanyIdAndId(1L, 10L))
-        .thenReturn(
-            Optional.of(account(FinancialAccountType.RECEIVABLE, FinancialAccountStatus.APPROVED)));
-    when(movements.save(any())).thenAnswer(invocation -> persisted(invocation.getArgument(0)));
+  void derivesReversalTypeFromOriginalMovementType() {
+    assertThat(useCase.execute(command("40.00")).type())
+        .isEqualTo(FinancialMovementType.REVERSAL_PAYMENT);
 
-    assertThat(useCase.execute(command("40.00")).type()).isEqualTo(FinancialMovementType.RECEIPT);
+    when(movements.findByScopeAndId(1L, 10L, 20L, 50L))
+        .thenReturn(Optional.of(originalMovement(FinancialMovementType.RECEIPT, "100.00")));
+    assertThat(useCase.execute(command("40.00", 50L, 30L, 40L, "key-2")).type())
+        .isEqualTo(FinancialMovementType.REVERSAL_RECEIPT);
   }
 
   @Test
-  void partialSettlementForcesVersionAndKeepsAccountApproved() {
+  void partialReversalOnApprovedAccountForcesVersionAndKeepsAccountApproved() {
     useCase.execute(command("40.00"));
 
     verify(accounts).forceSettlementVersionIncrement(1L, 10L);
     verify(accounts, never()).updateSettlementStatus(any());
-    verify(idempotency).complete(any(), eq("50"));
+    verify(idempotency).complete(any(), eq("60"));
   }
 
   @Test
-  void finalSettlementMarksAccountSettledOnlyWhenEveryInstallmentIsClosed() {
-    when(balances.hasOpenInstallments(10L)).thenReturn(false);
+  void reversalOnSettledAccountReopensToApproved() {
+    when(accounts.findByCompanyIdAndId(1L, 10L))
+        .thenReturn(
+            Optional.of(account(FinancialAccountType.PAYABLE, FinancialAccountStatus.SETTLED)));
     ArgumentCaptor<FinancialAccount> account = ArgumentCaptor.forClass(FinancialAccount.class);
 
-    useCase.execute(command("100.00"));
+    useCase.execute(command("40.00"));
 
     verify(accounts).updateSettlementStatus(account.capture());
-    assertThat(account.getValue().status()).isEqualTo(FinancialAccountStatus.SETTLED);
+    assertThat(account.getValue().status()).isEqualTo(FinancialAccountStatus.APPROVED);
   }
 
   @ParameterizedTest
   @EnumSource(
       value = FinancialAccountStatus.class,
-      names = {"DRAFT", "PENDING_APPROVAL", "SETTLED", "CANCELLED"})
-  void rejectsEveryNonApprovedAccountWithoutSettlementMutation(FinancialAccountStatus status) {
+      names = {"DRAFT", "PENDING_APPROVAL", "CANCELLED"})
+  void rejectsEveryNonReversibleAccountStatus(FinancialAccountStatus status) {
     when(accounts.findByCompanyIdAndId(1L, 10L))
         .thenReturn(Optional.of(account(FinancialAccountType.PAYABLE, status)));
 
     assertThatThrownBy(() -> useCase.execute(command("10.00")))
-        .isInstanceOf(FinancialAccountNotSettleableException.class);
+        .isInstanceOf(FinancialAccountNotReversibleException.class);
+    verify(movements, never()).findByScopeAndId(anyLong(), anyLong(), anyLong(), anyLong());
     verify(accounts, never()).forceSettlementVersionIncrement(anyLong(), anyLong());
     verify(movements, never()).save(any());
   }
 
   @Test
-  void scopesAccountAndInstallmentWithoutLeakingOtherOwners() {
+  void scopesAccountInstallmentAndOriginalMovementWithoutLeakingOtherOwners() {
     when(accounts.findByCompanyIdAndId(1L, 10L)).thenReturn(Optional.empty());
     assertThatThrownBy(() -> useCase.execute(command("10.00")))
         .isInstanceOf(FinancialAccountNotFoundException.class);
@@ -108,20 +111,46 @@ class SettleInstallmentTest {
     when(accounts.findByCompanyIdAndId(1L, 10L))
         .thenReturn(
             Optional.of(account(FinancialAccountType.PAYABLE, FinancialAccountStatus.APPROVED)));
-    var wrongInstallment = command("10.00", 999L, 30L, 40L, "key-other");
+    var wrongInstallment = reversalCommand("10.00", 999L, 50L, 30L, 40L, "key-other");
     assertThatThrownBy(() -> useCase.execute(wrongInstallment))
         .isInstanceOf(InstallmentNotFoundException.class);
+
+    when(movements.findByScopeAndId(1L, 10L, 20L, 999L)).thenReturn(Optional.empty());
+    assertThatThrownBy(
+            () -> useCase.execute(reversalCommand("10.00", 20L, 999L, 30L, 40L, "key-wrong-mvt")))
+        .isInstanceOf(OriginalMovementNotFoundException.class);
   }
 
   @Test
-  void rejectsAlreadySettledAndOverpaymentWithoutCreatingMovement() {
-    when(balances.settledAmountByInstallmentId(20L)).thenReturn(new BigDecimal("100.00"));
-    assertThatThrownBy(() -> useCase.execute(command("1.00")))
-        .isInstanceOf(InstallmentAlreadySettledException.class);
+  void rejectsReversingAReversal() {
+    when(movements.findByScopeAndId(1L, 10L, 20L, 50L))
+        .thenReturn(
+            Optional.of(
+                FinancialMovement.rehydrate(
+                    50L,
+                    20L,
+                    FinancialMovementType.REVERSAL_PAYMENT,
+                    new BigDecimal("40.00"),
+                    DATE,
+                    30L,
+                    40L,
+                    10L)));
 
-    when(balances.settledAmountByInstallmentId(20L)).thenReturn(new BigDecimal("70.00"));
+    assertThatThrownBy(() -> useCase.execute(command("10.00")))
+        .isInstanceOf(CannotReverseReversalException.class);
+    verify(accounts, never()).forceSettlementVersionIncrement(anyLong(), anyLong());
+    verify(movements, never()).save(any());
+  }
+
+  @Test
+  void rejectsAlreadyFullyReversedAndOverReversalWithoutCreatingMovement() {
+    when(balances.reversedAmountByOriginalMovementId(50L)).thenReturn(new BigDecimal("100.00"));
+    assertThatThrownBy(() -> useCase.execute(command("1.00")))
+        .isInstanceOf(OriginalMovementAlreadyFullyReversedException.class);
+
+    when(balances.reversedAmountByOriginalMovementId(50L)).thenReturn(new BigDecimal("70.00"));
     assertThatThrownBy(() -> useCase.execute(command("40.00")))
-        .isInstanceOf(SettlementAmountExceedsBalanceException.class);
+        .isInstanceOf(ReversalAmountExceedsBalanceException.class);
     verify(movements, never()).save(any());
   }
 
@@ -165,7 +194,7 @@ class SettleInstallmentTest {
     useCase.execute(command("10.00"));
     when(bankAccounts.findByCompanyIdAndId(1L, 30L))
         .thenReturn(Optional.of(BankAccount.rehydrate(30L, 1L, 2L, "Bank", true)));
-    useCase.execute(command("10.00", 20L, 30L, 40L, "matching-branch"));
+    useCase.execute(command("10.00", 50L, 30L, 40L, "matching-branch"));
     verify(movements, times(2)).save(any());
   }
 
@@ -200,7 +229,7 @@ class SettleInstallmentTest {
 
   @Test
   void translatesOptimisticVersionConflict() {
-    doThrow(new OptimisticLockingFailureException("stale settlement") {})
+    doThrow(new OptimisticLockingFailureException("stale reversal") {})
         .when(accounts)
         .forceSettlementVersionIncrement(1L, 10L);
 
@@ -213,7 +242,7 @@ class SettleInstallmentTest {
   }
 
   @Test
-  void completedClaimReplaysScopedImmutableMovementWithoutBusinessLookups() {
+  void completedClaimReplaysScopedImmutableReversalWithoutBusinessLookups() {
     when(idempotency.claim(any(), anyString())).thenReturn(IdempotencyClaim.completed(90L, "77"));
     when(movements.findByScopeAndId(1L, 10L, 20L, 77L))
         .thenReturn(
@@ -221,26 +250,28 @@ class SettleInstallmentTest {
                 FinancialMovement.rehydrate(
                     77L,
                     20L,
-                    FinancialMovementType.PAYMENT,
+                    FinancialMovementType.REVERSAL_PAYMENT,
                     new BigDecimal("40.00"),
                     DATE,
                     30L,
                     40L,
-                    null)));
+                    50L)));
 
-    SettlementResult replay = useCase.execute(command("40.00"));
+    ReversalResult replay = useCase.execute(command("40.00"));
 
     assertThat(replay.id()).isEqualTo(77L);
+    assertThat(replay.originalMovementId()).isEqualTo(50L);
     verifyNoInteractions(bankAccounts, paymentMethods, balances);
     verify(accounts, never()).findByCompanyIdAndId(anyLong(), anyLong());
   }
 
   @Test
   void fingerprintUsesApprovedOrderAndCanonicalMoney() {
-    assertThat(SettleInstallment.fingerprint(command("100")))
-        .isEqualTo(SettleInstallment.fingerprint(command("100.00")));
-    assertThat(SettleInstallment.fingerprint(command("100.00")))
-        .isNotEqualTo(SettleInstallment.fingerprint(command("100.00", 20L, 31L, 40L, "same-key")));
+    assertThat(ReverseFinancialMovement.fingerprint(command("100")))
+        .isEqualTo(ReverseFinancialMovement.fingerprint(command("100.00")));
+    assertThat(ReverseFinancialMovement.fingerprint(command("100.00")))
+        .isNotEqualTo(
+            ReverseFinancialMovement.fingerprint(command("100.00", 51L, 30L, 40L, "same-key")));
   }
 
   @Test
@@ -267,8 +298,8 @@ class SettleInstallmentTest {
   void candidateValidationHappensBeforeAnyBoundaryInteraction() {
     assertThatThrownBy(
             () ->
-                new SettleInstallmentCommand(
-                    1L, 10L, 20L, new BigDecimal("1.001"), DATE, 30L, 40L, "key"))
+                new ReverseFinancialMovementCommand(
+                    1L, 10L, 20L, 50L, new BigDecimal("1.001"), DATE, 30L, 40L, "key"))
         .isInstanceOf(InvalidFinancialMovementException.class);
     verifyNoInteractions(idempotency, accounts, movements, balances, bankAccounts, paymentMethods);
   }
@@ -276,8 +307,22 @@ class SettleInstallmentTest {
   @Test
   void nullMovementDateFailsBeforeEveryBoundary() {
     assertThatThrownBy(
-            () -> new SettleInstallmentCommand(1L, 10L, 20L, BigDecimal.ONE, null, 30L, 40L, "key"))
+            () ->
+                new ReverseFinancialMovementCommand(
+                    1L, 10L, 20L, 50L, BigDecimal.ONE, null, 30L, 40L, "key"))
         .isInstanceOf(InvalidFinancialMovementException.class);
+    verifyNoInteractions(idempotency, accounts, movements, balances, bankAccounts, paymentMethods);
+  }
+
+  @Test
+  void invalidMovementIdsFailBeforeEveryBoundary() {
+    for (Long id : new Long[] {null, 0L, -1L}) {
+      assertThatThrownBy(
+              () ->
+                  new ReverseFinancialMovementCommand(
+                      1L, 10L, 20L, id, BigDecimal.ONE, DATE, 30L, 40L, "key"))
+          .isInstanceOf(InvalidFinancialMovementException.class);
+    }
     verifyNoInteractions(idempotency, accounts, movements, balances, bankAccounts, paymentMethods);
   }
 
@@ -286,7 +331,8 @@ class SettleInstallmentTest {
     for (Long id : new Long[] {null, 0L, -1L}) {
       assertThatThrownBy(
               () ->
-                  new SettleInstallmentCommand(1L, 10L, 20L, BigDecimal.ONE, DATE, id, 40L, "key"))
+                  new ReverseFinancialMovementCommand(
+                      1L, 10L, 20L, 50L, BigDecimal.ONE, DATE, id, 40L, "key"))
           .isInstanceOf(InvalidFinancialMovementException.class);
     }
     verifyNoInteractions(idempotency, accounts, movements, balances, bankAccounts, paymentMethods);
@@ -297,20 +343,39 @@ class SettleInstallmentTest {
     for (Long id : new Long[] {null, 0L, -1L}) {
       assertThatThrownBy(
               () ->
-                  new SettleInstallmentCommand(1L, 10L, 20L, BigDecimal.ONE, DATE, 30L, id, "key"))
+                  new ReverseFinancialMovementCommand(
+                      1L, 10L, 20L, 50L, BigDecimal.ONE, DATE, 30L, id, "key"))
           .isInstanceOf(InvalidFinancialMovementException.class);
     }
     verifyNoInteractions(idempotency, accounts, movements, balances, bankAccounts, paymentMethods);
   }
 
-  private SettleInstallmentCommand command(String amount) {
-    return command(amount, 20L, 30L, 40L, "key-1");
+  private ReverseFinancialMovementCommand command(String amount) {
+    return command(amount, 50L, 30L, 40L, "key-1");
   }
 
-  private SettleInstallmentCommand command(
-      String amount, Long installmentId, Long bankAccountId, Long paymentMethodId, String key) {
-    return new SettleInstallmentCommand(
-        1L, 10L, installmentId, new BigDecimal(amount), DATE, bankAccountId, paymentMethodId, key);
+  private ReverseFinancialMovementCommand command(
+      String amount, Long movementId, Long bankAccountId, Long paymentMethodId, String key) {
+    return reversalCommand(amount, 20L, movementId, bankAccountId, paymentMethodId, key);
+  }
+
+  private ReverseFinancialMovementCommand reversalCommand(
+      String amount,
+      Long installmentId,
+      Long movementId,
+      Long bankAccountId,
+      Long paymentMethodId,
+      String key) {
+    return new ReverseFinancialMovementCommand(
+        1L,
+        10L,
+        installmentId,
+        movementId,
+        new BigDecimal(amount),
+        DATE,
+        bankAccountId,
+        paymentMethodId,
+        key);
   }
 
   private static FinancialAccount account(
@@ -331,15 +396,20 @@ class SettleInstallmentTest {
             Installment.rehydrate(21L, 2, DATE, new BigDecimal("50.00"))));
   }
 
-  private static FinancialMovement persisted(FinancialMovement movement) {
+  private static FinancialMovement originalMovement(FinancialMovementType type, String amount) {
     return FinancialMovement.rehydrate(
-        50L,
-        movement.installmentId(),
-        movement.type(),
-        movement.amount(),
-        movement.movementDate(),
-        movement.bankAccountId(),
-        movement.paymentMethodId(),
-        movement.originalMovementId());
+        50L, 20L, type, new BigDecimal(amount), DATE, 30L, 40L, null);
+  }
+
+  private static FinancialMovement persisted(FinancialMovement reversal) {
+    return FinancialMovement.rehydrate(
+        60L,
+        reversal.installmentId(),
+        reversal.type(),
+        reversal.amount(),
+        reversal.movementDate(),
+        reversal.bankAccountId(),
+        reversal.paymentMethodId(),
+        reversal.originalMovementId());
   }
 }

@@ -48,7 +48,12 @@ Codigos tecnicos iniciais:
 - `BANK_ACCOUNT_INACTIVE`: BankAccount inativa não entra em novo settlement (HTTP 422);
 - `BANK_ACCOUNT_BRANCH_NOT_ALLOWED`: BankAccount não está disponível para a Branch da FinancialAccount (HTTP 422);
 - `PAYMENT_METHOD_INACTIVE`: PaymentMethod inativo não entra em novo settlement (HTTP 422);
-- `SETTLEMENT_CONFLICT`: conflito otimista entre settlements concorrentes (HTTP 409);
+- `SETTLEMENT_CONFLICT`: conflito otimista entre settlements/reversals concorrentes (HTTP 409);
+- `FINANCIAL_ACCOUNT_NOT_REVERSIBLE`: FinancialAccount não está `APPROVED`/`SETTLED` para reversal (HTTP 409);
+- `ORIGINAL_MOVEMENT_NOT_FOUND`: FinancialMovement original não pertence ao escopo informado (HTTP 404);
+- `CANNOT_REVERSE_REVERSAL`: a FinancialMovement referenciada já é um reversal (HTTP 422);
+- `ORIGINAL_MOVEMENT_ALREADY_FULLY_REVERSED`: a movimentação original não possui saldo reversível restante (HTTP 409);
+- `REVERSAL_AMOUNT_EXCEEDS_BALANCE`: valor supera o saldo reversível restante da movimentação original (HTTP 422);
 - `PARTNER_INACTIVE`: Partner inativo não pode ser usado em novo lançamento;
 - `PARTNER_ROLE_NOT_ALLOWED`: Partner não possui o papel exigido por `PAYABLE`/`RECEIVABLE`;
 - `CATEGORY_INACTIVE`: Category inativa não pode ser usada em novo lançamento;

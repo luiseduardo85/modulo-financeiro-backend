@@ -36,6 +36,7 @@ public class JpaFinancialMovementRepositoryAdapter implements FinancialMovementR
         entity.amount(),
         entity.movementDate(),
         entity.bankAccountId(),
-        entity.paymentMethodId());
+        entity.paymentMethodId(),
+        entity.originalMovementId());
   }
 }

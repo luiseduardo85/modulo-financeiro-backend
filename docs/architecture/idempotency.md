@@ -71,3 +71,15 @@ decimal da FinancialMovement.
 Primeira execução e replay concluído retornam 201 e a mesma representação
 imutável da FinancialMovement. Saldos derivados não fazem parte da resposta,
 evitando que settlements posteriores alterem a semântica do replay.
+
+## Reversal consumer
+
+FUNC-008 consome esta infraestrutura com operação `REVERSE_FINANCIAL_MOVEMENT`.
+O fingerprint usa, em ordem: `reversal:v1`, operação, companyId,
+financialAccountId, installmentId, o ID da FinancialMovement original, amount
+canônico sem zeros insignificantes, movementDate ISO, bankAccountId e
+paymentMethodId. O `resultReference` é o ID decimal da FinancialMovement de
+reversal criada.
+
+Primeira execução e replay concluído retornam 201 e a mesma representação
+imutável da FinancialMovement de reversal, incluindo `originalMovementId`.

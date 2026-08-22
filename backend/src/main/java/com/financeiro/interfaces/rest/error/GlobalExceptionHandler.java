@@ -187,6 +187,36 @@ public class GlobalExceptionHandler {
     return api(ApiErrorType.SETTLEMENT_CONFLICT, exception);
   }
 
+  @ExceptionHandler(FinancialAccountNotReversibleException.class)
+  public ResponseEntity<ErrorResponse> handleFinancialAccountNotReversible(
+      FinancialAccountNotReversibleException exception) {
+    return api(ApiErrorType.FINANCIAL_ACCOUNT_NOT_REVERSIBLE, exception);
+  }
+
+  @ExceptionHandler(OriginalMovementNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleOriginalMovementNotFound(
+      OriginalMovementNotFoundException exception) {
+    return api(ApiErrorType.ORIGINAL_MOVEMENT_NOT_FOUND, exception);
+  }
+
+  @ExceptionHandler(CannotReverseReversalException.class)
+  public ResponseEntity<ErrorResponse> handleCannotReverseReversal(
+      CannotReverseReversalException exception) {
+    return api(ApiErrorType.CANNOT_REVERSE_REVERSAL, exception);
+  }
+
+  @ExceptionHandler(OriginalMovementAlreadyFullyReversedException.class)
+  public ResponseEntity<ErrorResponse> handleOriginalMovementAlreadyFullyReversed(
+      OriginalMovementAlreadyFullyReversedException exception) {
+    return api(ApiErrorType.ORIGINAL_MOVEMENT_ALREADY_FULLY_REVERSED, exception);
+  }
+
+  @ExceptionHandler(ReversalAmountExceedsBalanceException.class)
+  public ResponseEntity<ErrorResponse> handleReversalAmountExceedsBalance(
+      ReversalAmountExceedsBalanceException exception) {
+    return api(ApiErrorType.REVERSAL_AMOUNT_EXCEEDS_BALANCE, exception);
+  }
+
   @ExceptionHandler(PartnerInactiveException.class)
   public ResponseEntity<ErrorResponse> handlePartnerInactive(PartnerInactiveException exception) {
     return response(

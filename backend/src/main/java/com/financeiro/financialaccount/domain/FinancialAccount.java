@@ -207,6 +207,11 @@ public final class FinancialAccount {
     status = FinancialAccountStatus.SETTLED;
   }
 
+  public void reopen() {
+    requireStatus(FinancialAccountStatus.SETTLED);
+    status = FinancialAccountStatus.APPROVED;
+  }
+
   private void requireStatus(FinancialAccountStatus required) {
     if (status != required) {
       throw new InvalidFinancialAccountStatusException(status, required);

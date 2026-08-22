@@ -6,4 +6,6 @@ public interface SettlementBalanceRepository {
   BigDecimal settledAmountByInstallmentId(Long installmentId);
 
   boolean hasOpenInstallments(Long financialAccountId);
+
+  BigDecimal reversedAmountByOriginalMovementId(Long originalMovementId);
 }

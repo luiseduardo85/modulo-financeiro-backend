@@ -18,7 +18,10 @@ public class JpaSettlementBalanceRepositoryAdapter implements SettlementBalanceR
         entityManager
             .createNativeQuery(
                 """
-                SELECT COALESCE(SUM(movement."amount"), 0)
+                SELECT COALESCE(SUM(
+                    CASE WHEN movement."type" IN ('PAYMENT', 'RECEIPT') THEN movement."amount"
+                         ELSE -movement."amount"
+                    END), 0)
                 FROM "financialMovement" movement
                 WHERE movement."installmentId" = :installmentId
                 """)
@@ -37,7 +40,10 @@ public class JpaSettlementBalanceRepositoryAdapter implements SettlementBalanceR
                     FROM "installment" installment
                     WHERE installment."financialAccountId" = :financialAccountId
                       AND installment."amount" > COALESCE((
-                          SELECT SUM(movement."amount")
+                          SELECT SUM(
+                              CASE WHEN movement."type" IN ('PAYMENT', 'RECEIPT') THEN movement."amount"
+                                   ELSE -movement."amount"
+                              END)
                           FROM "financialMovement" movement
                           WHERE movement."installmentId" = installment."id"
                       ), 0)
@@ -46,5 +52,19 @@ public class JpaSettlementBalanceRepositoryAdapter implements SettlementBalanceR
                 Boolean.class)
             .setParameter("financialAccountId", financialAccountId)
             .getSingleResult());
+  }
+
+  @Override
+  public BigDecimal reversedAmountByOriginalMovementId(Long originalMovementId) {
+    return (BigDecimal)
+        entityManager
+            .createNativeQuery(
+                """
+                SELECT COALESCE(SUM(movement."amount"), 0)
+                FROM "financialMovement" movement
+                WHERE movement."originalMovementId" = :originalMovementId
+                """)
+            .setParameter("originalMovementId", originalMovementId)
+            .getSingleResult();
   }
 }
