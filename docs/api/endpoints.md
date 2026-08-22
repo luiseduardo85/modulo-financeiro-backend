@@ -15,7 +15,24 @@ POST /api/v1/contas/{id}/movimentacoes/{movimentacaoId}/estornar
 GET /api/v1/contas/{id}/historico
 
 Outros recursos:
-parceiros, categorias, centros-custo, contas-bancarias, formas-financeiras, companies, branches, usuarios, perfis, configuracoes-aprovacao, fluxo-caixa, dashboard/financeiro, relatorios e me.
+parceiros, categorias, centros-custo, bank-accounts, payment-methods, companies, branches, usuarios, perfis, configuracoes-aprovacao, fluxo-caixa, dashboard/financeiro, relatorios e me.
+
+## BankAccount / PaymentMethod
+
+```text
+POST /api/v1/companies/{companyId}/bank-accounts
+GET  /api/v1/companies/{companyId}/bank-accounts
+GET  /api/v1/companies/{companyId}/bank-accounts/{bankAccountId}
+POST /api/v1/companies/{companyId}/bank-accounts/{bankAccountId}/deactivate
+POST /api/v1/companies/{companyId}/payment-methods
+GET  /api/v1/companies/{companyId}/payment-methods
+GET  /api/v1/companies/{companyId}/payment-methods/{paymentMethodId}
+POST /api/v1/companies/{companyId}/payment-methods/{paymentMethodId}/deactivate
+```
+
+BankAccount recebe `name` e `branchId` opcional; PaymentMethod recebe somente
+`name`. O `companyId` da rota e escopo do recurso, nao contexto autenticado de
+tenant. Criacao retorna 201 e `Location`; demais operacoes retornam 200.
 
 ## Company / Branch
 

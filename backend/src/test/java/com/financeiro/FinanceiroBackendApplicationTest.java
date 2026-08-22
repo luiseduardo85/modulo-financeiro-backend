@@ -1,10 +1,12 @@
 package com.financeiro;
 
+import com.financeiro.bankaccount.application.BankAccountRepository;
 import com.financeiro.category.application.CategoryRepository;
 import com.financeiro.idempotency.application.IdempotencyStore;
 import com.financeiro.company.application.BranchRepository;
 import com.financeiro.company.application.CompanyRepository;
 import com.financeiro.costcenter.application.CostCenterRepository;
+import com.financeiro.paymentmethod.application.PaymentMethodRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,6 +30,12 @@ class FinanceiroBackendApplicationTest {
 
     @MockitoBean
     private CostCenterRepository costCenterRepository;
+
+    @MockitoBean
+    private BankAccountRepository bankAccountRepository;
+
+    @MockitoBean
+    private PaymentMethodRepository paymentMethodRepository;
 
     @Test
     void contextLoads() {

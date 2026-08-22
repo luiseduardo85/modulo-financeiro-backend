@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
+import com.financeiro.bankaccount.application.BankAccountNotFoundException;
+import com.financeiro.bankaccount.domain.InvalidBankAccountNameException;
 import com.financeiro.category.application.CategoryNotFoundException;
 import com.financeiro.category.domain.InvalidCategoryNameException;
 import com.financeiro.company.application.BranchNotFoundException;
@@ -15,6 +17,8 @@ import com.financeiro.costcenter.application.CostCenterNotFoundException;
 import com.financeiro.costcenter.domain.InvalidCostCenterNameException;
 import com.financeiro.idempotency.application.IdempotencyConflictException;
 import com.financeiro.idempotency.application.IdempotencyInProgressException;
+import com.financeiro.paymentmethod.application.PaymentMethodNotFoundException;
+import com.financeiro.paymentmethod.domain.InvalidPaymentMethodNameException;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,8 +98,19 @@ public class GlobalExceptionHandler {
         return response(HttpStatus.NOT_FOUND, "COST_CENTER_NOT_FOUND", exception.getMessage(), List.of());
     }
 
+    @ExceptionHandler(BankAccountNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBankAccountNotFound(BankAccountNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "BANK_ACCOUNT_NOT_FOUND", exception.getMessage(), List.of());
+    }
+
+    @ExceptionHandler(PaymentMethodNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentMethodNotFound(PaymentMethodNotFoundException exception) {
+        return response(HttpStatus.NOT_FOUND, "PAYMENT_METHOD_NOT_FOUND", exception.getMessage(), List.of());
+    }
+
     @ExceptionHandler({InvalidPageRequestException.class, InvalidNameException.class,
             InvalidCategoryNameException.class, InvalidCostCenterNameException.class,
+            InvalidBankAccountNameException.class, InvalidPaymentMethodNameException.class,
             ConstraintViolationException.class, MethodArgumentTypeMismatchException.class})
     public ResponseEntity<ErrorResponse> handleSemanticValidation(Exception exception) {
         return response(HttpStatus.UNPROCESSABLE_CONTENT, VALIDATION_ERROR,

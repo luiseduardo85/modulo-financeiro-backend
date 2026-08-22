@@ -19,13 +19,30 @@ Saldo é derivado.
 
 ## MovimentacaoFinanceira
 Tipos: PAGAMENTO, RECEBIMENTO, ESTORNO.
-Campos conceituais: id, tipo, valor, dataHora, formaFinanceiraId, contaBancariaId, usuarioId, movimentacaoOriginalId.
+Campos conceituais: id, tipo, valor, dataHora, paymentMethodId, bankAccountId, usuarioId, movimentacaoOriginalId.
 
 ## HistoricoConta
 Entity de domínio persistida separadamente do carregamento normal do Aggregate.
 
 ## Outros Aggregates/Entities
-Company, Branch, Parceiro, Categoria, CentroCusto, ContaBancaria, FormaFinanceira, Usuario, UsuarioEmpresa, UsuarioEmpresaPerfil, Perfil, PerfilPermissao, Permissao.
+Company, Branch, Parceiro, Categoria, CentroCusto, BankAccount, PaymentMethod, Usuario, UsuarioEmpresa, UsuarioEmpresaPerfil, Perfil, PerfilPermissao, Permissao.
+
+## BankAccount / PaymentMethod
+
+BankAccount e um aggregate independente com somente `id: Long`,
+`companyId: Long`, `branchId: Long` opcional, `name: String` e
+`active: boolean`. `companyId` e imutavel. `branchId` nulo significa uso por
+todas as Branches da Company; quando informado, restringe o uso a uma unica
+Branch da mesma Company.
+
+PaymentMethod e um aggregate independente e Company-scoped com somente
+`id: Long`, `companyId: Long`, `name: String` e `active: boolean`. Ele pode ser
+usado futuramente em PAYABLE e RECEIVABLE e nao possui campo de tipo.
+
+Em ambos, o nome usa `String.strip()`, e obrigatorio, nao branco, limitado a 200
+caracteres e pode se repetir. A criacao e ativa; `deactivate()` e a unica
+transicao deste slice. Inativos permanecem consultaveis e listaveis para
+preservar referencias historicas.
 
 ## Company / Branch
 

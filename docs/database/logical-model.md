@@ -1,7 +1,9 @@
 # Logical Database Model
 
 Company -> Branch
-Empresa -> ContaBancaria
+Company -> BankAccount
+Company -> PaymentMethod
+BankAccount -> Branch (opcional; restricao a uma unica Branch)
 Empresa -> ContaFinanceira -> ContaFinanceiraParcela -> MovimentacaoFinanceira
 
 ContaFinanceira referencia Parceiro, Categoria e CentroCusto.

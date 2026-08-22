@@ -3,7 +3,13 @@
 Nomes físicos usam camelCase e preservam casing no PostgreSQL.
 
 Principais tabelas:
-`"company"`, `"branch"`, `"parceiro"`, `"categoria"`, `"centroCusto"`, `"contaBancaria"`, `"formaFinanceira"`, `"contaFinanceira"`, `"contaFinanceiraParcela"`, `"movimentacaoFinanceira"`, `"historicoConta"`, `"usuario"`, `"usuarioEmpresa"`, `"usuarioEmpresaPerfil"`, `"perfil"`, `"perfilPermissao"`, `"permissao"`.
+`"company"`, `"branch"`, `"parceiro"`, `"categoria"`, `"centroCusto"`, `"bankAccount"`, `"paymentMethod"`, `"contaFinanceira"`, `"contaFinanceiraParcela"`, `"movimentacaoFinanceira"`, `"historicoConta"`, `"usuario"`, `"usuarioEmpresa"`, `"usuarioEmpresaPerfil"`, `"perfil"`, `"perfilPermissao"`, `"permissao"`.
+
+`"bankAccount"` contem somente `"id"`, `"companyId"`, `"branchId"`, `"name"`
+e `"active"`. `"branchId"` e anulavel. FKs garantem que Company e Branch
+existam; a aplicacao valida que a Branch pertence a mesma Company, pois o modelo
+existente de Branch nao possui chave composta. `"paymentMethod"` contem somente
+`"id"`, `"companyId"`, `"name"` e `"active"`.
 
 `"company"` contém somente `"id"` e `"name"`. `"branch"` contém somente
 `"id"`, `"companyId"` e `"name"`, com FK obrigatória de `"branch"."companyId"`

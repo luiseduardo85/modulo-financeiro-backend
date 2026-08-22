@@ -56,10 +56,18 @@
 - RN-EMPRESA-001: usuário pode acessar múltiplas empresas.
 - RN-EMPRESA-002: acesso à empresa dá acesso às suas filiais.
 
-## Conta Bancária
-- RN-BANCO-001: conta bancária pertence a uma única empresa.
-- RN-BANCO-002: pode ser usada por filiais permitidas da mesma empresa.
-- RN-BANCO-003: inativa não entra em novas movimentações.
+## BankAccount / PaymentMethod
+- RN-BANCO-001: BankAccount pertence a exatamente uma Company.
+- RN-BANCO-002: `branchId` nulo permite uso por todas as Branches da Company;
+  quando informado, restringe a uma unica Branch da mesma Company.
+- RN-BANCO-003: BankAccount inativa nao entra em novas movimentacoes; referencias
+  historicas permanecem consultaveis.
+- RN-BANCO-004: nomes de BankAccount podem se repetir.
+- RN-PAGAMENTO-001: PaymentMethod pertence a exatamente uma Company e e compartilhado
+  entre fluxos PAYABLE e RECEIVABLE, sem campo de tipo financeiro.
+- RN-PAGAMENTO-002: PaymentMethod inativo nao entra em novas operacoes; referencias
+  historicas permanecem consultaveis.
+- RN-PAGAMENTO-003: nomes de PaymentMethod podem se repetir.
 
 ## Autorização
 - RN-AUTORIZACAO-001: perfil é global.

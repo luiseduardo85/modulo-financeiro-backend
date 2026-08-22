@@ -33,6 +33,8 @@ Codigos tecnicos iniciais:
 - `RESOURCE_NOT_FOUND`: recurso nao encontrado;
 - `COMPANY_NOT_FOUND`: Company não encontrada;
 - `BRANCH_NOT_FOUND`: Branch não encontrada no escopo da Company informada;
+- `BANK_ACCOUNT_NOT_FOUND`: BankAccount nao encontrada no escopo da Company informada;
+- `PAYMENT_METHOD_NOT_FOUND`: PaymentMethod nao encontrado no escopo da Company informada;
 - `CONFLICT`: conflito de estado ou concorrencia;
 - `INTERNAL_ERROR`: falha interna inesperada.
 - `IDEMPOTENCY_KEY_REQUIRED`: header `Idempotency-Key` obrigatorio ausente;
