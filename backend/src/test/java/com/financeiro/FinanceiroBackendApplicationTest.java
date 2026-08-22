@@ -10,6 +10,7 @@ import com.financeiro.approval.application.ApprovalDecisionRepository;
 import com.financeiro.approval.application.ApprovalEligibility;
 import com.financeiro.approval.application.ApprovalRequestRepository;
 import com.financeiro.bankaccount.application.BankAccountRepository;
+import com.financeiro.cashflow.application.CashFlowRepository;
 import com.financeiro.category.application.CategoryRepository;
 import com.financeiro.company.application.BranchRepository;
 import com.financeiro.company.application.CompanyRepository;
@@ -67,6 +68,8 @@ class FinanceiroBackendApplicationTest {
   @MockitoBean private HistoryEntryRepository historyEntryRepository;
 
   @MockitoBean private FinancialAccountTimelineRepository financialAccountTimelineRepository;
+
+  @MockitoBean private CashFlowRepository cashFlowRepository;
 
   @Test
   void contextLoads() {

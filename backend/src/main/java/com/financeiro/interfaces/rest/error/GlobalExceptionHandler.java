@@ -10,6 +10,7 @@ import com.financeiro.approval.domain.InvalidApprovalRequestException;
 import com.financeiro.approval.domain.InvalidRejectionJustificationException;
 import com.financeiro.bankaccount.application.BankAccountNotFoundException;
 import com.financeiro.bankaccount.domain.InvalidBankAccountNameException;
+import com.financeiro.cashflow.application.InvalidCashFlowQueryException;
 import com.financeiro.category.application.CategoryNotFoundException;
 import com.financeiro.category.domain.InvalidCategoryNameException;
 import com.financeiro.company.application.BranchNotFoundException;
@@ -51,6 +52,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -334,8 +336,10 @@ public class GlobalExceptionHandler {
     InvalidApprovalRequestException.class,
     InvalidApprovalDecisionException.class,
     InvalidFinancialMovementException.class,
+    InvalidCashFlowQueryException.class,
     ConstraintViolationException.class,
-    MethodArgumentTypeMismatchException.class
+    MethodArgumentTypeMismatchException.class,
+    MissingServletRequestParameterException.class
   })
   public ResponseEntity<ErrorResponse> handleSemanticValidation(Exception exception) {
     return response(

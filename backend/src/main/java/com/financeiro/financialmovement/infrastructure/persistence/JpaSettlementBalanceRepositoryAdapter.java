@@ -18,13 +18,11 @@ public class JpaSettlementBalanceRepositoryAdapter implements SettlementBalanceR
         entityManager
             .createNativeQuery(
                 """
-                SELECT COALESCE(SUM(
-                    CASE WHEN movement."type" IN ('PAYMENT', 'RECEIPT') THEN movement."amount"
-                         ELSE -movement."amount"
-                    END), 0)
-                FROM "financialMovement" movement
-                WHERE movement."installmentId" = :installmentId
-                """)
+                SELECT COALESCE(SUM(%s), 0)
+                FROM "financialMovement"
+                WHERE "installmentId" = :installmentId
+                """
+                    .formatted(NetSettlementAmountSql.NET_AMOUNT_CASE))
             .setParameter("installmentId", installmentId)
             .getSingleResult();
   }
@@ -40,15 +38,13 @@ public class JpaSettlementBalanceRepositoryAdapter implements SettlementBalanceR
                     FROM "installment" installment
                     WHERE installment."financialAccountId" = :financialAccountId
                       AND installment."amount" > COALESCE((
-                          SELECT SUM(
-                              CASE WHEN movement."type" IN ('PAYMENT', 'RECEIPT') THEN movement."amount"
-                                   ELSE -movement."amount"
-                              END)
-                          FROM "financialMovement" movement
-                          WHERE movement."installmentId" = installment."id"
+                          SELECT SUM(%s)
+                          FROM "financialMovement"
+                          WHERE "installmentId" = installment."id"
                       ), 0)
                 )
-                """,
+                """
+                    .formatted(NetSettlementAmountSql.NET_AMOUNT_CASE),
                 Boolean.class)
             .setParameter("financialAccountId", financialAccountId)
             .getSingleResult());
