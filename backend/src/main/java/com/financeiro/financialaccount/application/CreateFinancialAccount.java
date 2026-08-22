@@ -11,6 +11,8 @@ import com.financeiro.costcenter.application.CostCenterRepository;
 import com.financeiro.financialaccount.domain.FinancialAccount;
 import com.financeiro.financialaccount.domain.FinancialAccountType;
 import com.financeiro.financialaccount.domain.Installment;
+import com.financeiro.history.application.HistoryEntryRepository;
+import com.financeiro.history.domain.HistoryEntry;
 import com.financeiro.partner.application.PartnerNotFoundException;
 import com.financeiro.partner.application.PartnerRepository;
 import com.financeiro.partner.domain.PartnerRole;
@@ -25,6 +27,7 @@ public class CreateFinancialAccount {
   private final CategoryRepository categories;
   private final CostCenterRepository costCenters;
   private final FinancialAccountRepository accounts;
+  private final HistoryEntryRepository history;
 
   public CreateFinancialAccount(
       CompanyRepository companies,
@@ -32,13 +35,15 @@ public class CreateFinancialAccount {
       PartnerRepository partners,
       CategoryRepository categories,
       CostCenterRepository costCenters,
-      FinancialAccountRepository accounts) {
+      FinancialAccountRepository accounts,
+      HistoryEntryRepository history) {
     this.companies = companies;
     this.branches = branches;
     this.partners = partners;
     this.categories = categories;
     this.costCenters = costCenters;
     this.accounts = accounts;
+    this.history = history;
   }
 
   @Transactional
@@ -98,6 +103,8 @@ public class CreateFinancialAccount {
                           candidate.companyId(), candidate.costCenterId()));
       if (!costCenter.active()) throw new CostCenterInactiveException();
     }
-    return accounts.save(candidate);
+    var saved = accounts.save(candidate);
+    history.save(HistoryEntry.created(saved.id()));
+    return saved;
   }
 }

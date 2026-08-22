@@ -41,3 +41,9 @@ novo CHECK (`ckFinancialMovementOriginalConsistency`) garante que
 somente para os tipos de reversal. PostgreSQL não prova que a movimentação
 referenciada não é, ela própria, um reversal; a Application aplica essa regra.
 Nenhuma linha de FinancialMovement é apagada ou atualizada por UPDATE/DELETE.
+
+FinancialAccountHistory possui FK escalar obrigatória para FinancialAccount,
+sem cascade. CHECK restringe `"type"` a `CREATED`/`APPROVED_WITHOUT_WORKFLOW` e
+um segundo CHECK garante `"actorId"` nulo somente em `CREATED` e presente/não
+branco em `APPROVED_WITHOUT_WORKFLOW`. `HistoryEntryRepository` expõe somente
+`save`; nenhuma linha é apagada ou atualizada.

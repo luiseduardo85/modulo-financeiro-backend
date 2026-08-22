@@ -22,6 +22,8 @@ Candidatos:
 - FinancialMovement usa `"ixFinancialMovementOriginalMovementId"`, um índice
   parcial por `originalMovementId` somente para linhas de reversal, para somar
   o saldo já revertido de uma movimentação original;
+- FinancialAccountHistory usa `"ixFinancialAccountHistoryFinancialAccountId"`
+  por `financialAccountId`, `id` para montar a timeline por conta;
 - joins de autorização.
 
 Nomes também usam camelCase.

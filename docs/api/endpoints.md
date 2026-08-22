@@ -9,6 +9,7 @@ POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/appro
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/reject
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/installments/{installmentId}/settlements
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/installments/{installmentId}/settlements/{movementId}/reversals
+GET /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/history
 
 Criação recebe `branchId`, `type`, `partnerId`, `categoryId`, `costCenterId`
 opcional, `issueDate`, `totalAmount` e `installments`. Retorna 201 e `Location`.
@@ -33,11 +34,18 @@ FinancialMovement de reversal imutável criada, com `REVERSAL_PAYMENT`/
 `originalMovementId` apontando para ela. Replay concluído retorna a mesma
 identidade e representação.
 
-Endpoints futuros, fora de FUNC-008:
+History em FUNC-009 não exige `Idempotency-Key` (é somente leitura) e retorna
+uma lista ordenada e não paginada de eventos, composta a partir de
+`FinancialAccountHistory`, `ApprovalRequest`/`ApprovalDecision` e
+`FinancialMovement`. Cada evento é um `type` discriminador com campos esparsos
+específicos (`actorId`, `decision`, `rejectionJustification`, `movementId`,
+`originalMovementId`, `movementType`, `amount`, `movementDate`) e um
+`occurredAt` técnico em UTC usado somente para ordenação determinística.
+
+Endpoints futuros, fora de FUNC-009:
 PUT /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
 DELETE /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/cancel
-GET /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/history
 
 Outros recursos:
 partners, categories, cost-centers, bank-accounts, payment-methods, companies, branches, usuarios, perfis, configuracoes-aprovacao, fluxo-caixa, dashboard/financeiro, relatorios e me.

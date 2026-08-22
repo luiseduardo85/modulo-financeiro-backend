@@ -7,6 +7,9 @@ import static org.mockito.Mockito.*;
 import com.financeiro.approval.domain.*;
 import com.financeiro.financialaccount.application.FinancialAccountRepository;
 import com.financeiro.financialaccount.domain.*;
+import com.financeiro.history.application.HistoryEntryRepository;
+import com.financeiro.history.domain.HistoryEntry;
+import com.financeiro.history.domain.HistoryEntryType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,6 +25,7 @@ class ApprovalUseCasesTest {
   ApprovalConfigurationRepository configurations;
   ApprovalRequestRepository requests;
   ApprovalDecisionRepository decisions;
+  HistoryEntryRepository history;
 
   @BeforeEach
   void setUp() {
@@ -31,6 +35,7 @@ class ApprovalUseCasesTest {
     configurations = mock(ApprovalConfigurationRepository.class);
     requests = mock(ApprovalRequestRepository.class);
     decisions = mock(ApprovalDecisionRepository.class);
+    history = mock(HistoryEntryRepository.class);
     when(actors.currentActor()).thenReturn(new ApprovalActor("requester"));
     when(accounts.updateStatus(any())).thenAnswer(invocation -> invocation.getArgument(0));
   }
@@ -53,16 +58,17 @@ class ApprovalUseCasesTest {
     assertThat(request.getValue().requesterActorId()).isEqualTo("requester");
     assertThat(request.getValue().status()).isEqualTo(ApprovalRequestStatus.PENDING);
     verify(accounts).updateStatus(account);
+    verifyNoInteractions(history);
   }
 
   @Test
-  void directApprovalUsesDisabledConfigurationOrNoConfigurationWithoutRequest() {
+  void directApprovalUsesDisabledConfigurationOrNoConfigurationWithoutRequestAndRecordsHistory() {
     for (Optional<ApprovalConfiguration> configured :
         List.of(
             Optional.of(
                 ApprovalConfiguration.rehydrate(1L, 1L, null, FinancialAccountType.PAYABLE, false)),
             Optional.<ApprovalConfiguration>empty())) {
-      reset(accounts, configurations, requests);
+      reset(accounts, configurations, requests, history);
       var account = account(FinancialAccountStatus.DRAFT);
       when(accounts.findByCompanyIdAndId(1L, 10L)).thenReturn(Optional.of(account));
       when(accounts.updateStatus(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -71,6 +77,11 @@ class ApprovalUseCasesTest {
 
       assertThat(submit().execute(1L, 10L).status()).isEqualTo(FinancialAccountStatus.APPROVED);
       verifyNoInteractions(requests);
+      var entry = ArgumentCaptor.forClass(HistoryEntry.class);
+      verify(history).save(entry.capture());
+      assertThat(entry.getValue().type()).isEqualTo(HistoryEntryType.APPROVED_WITHOUT_WORKFLOW);
+      assertThat(entry.getValue().financialAccountId()).isEqualTo(10L);
+      assertThat(entry.getValue().actorId()).isEqualTo("requester");
     }
   }
 
@@ -161,7 +172,7 @@ class ApprovalUseCasesTest {
         .isInstanceOf(ApprovalActorUnavailableException.class);
     assertThatThrownBy(() -> reject().execute(1L, 10L, "valid reason"))
         .isInstanceOf(ApprovalActorUnavailableException.class);
-    verifyNoInteractions(accounts, configurations, requests, eligibility, decisions);
+    verifyNoInteractions(accounts, configurations, requests, eligibility, decisions, history);
   }
 
   @Test
@@ -289,7 +300,8 @@ class ApprovalUseCasesTest {
   }
 
   private SubmitFinancialAccountForApproval submit() {
-    return new SubmitFinancialAccountForApproval(actors, accounts, configurations, requests);
+    return new SubmitFinancialAccountForApproval(
+        actors, accounts, configurations, requests, history);
   }
 
   private ApproveFinancialAccount approve() {

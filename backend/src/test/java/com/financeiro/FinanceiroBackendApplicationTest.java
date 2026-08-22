@@ -17,6 +17,8 @@ import com.financeiro.costcenter.application.CostCenterRepository;
 import com.financeiro.financialaccount.application.FinancialAccountRepository;
 import com.financeiro.financialmovement.application.FinancialMovementRepository;
 import com.financeiro.financialmovement.application.SettlementBalanceRepository;
+import com.financeiro.history.application.FinancialAccountTimelineRepository;
+import com.financeiro.history.application.HistoryEntryRepository;
 import com.financeiro.idempotency.application.IdempotencyStore;
 import com.financeiro.partner.application.PartnerRepository;
 import com.financeiro.paymentmethod.application.PaymentMethodRepository;
@@ -61,6 +63,10 @@ class FinanceiroBackendApplicationTest {
   @MockitoBean private ApprovalRequestRepository approvalRequestRepository;
 
   @MockitoBean private ApprovalDecisionRepository approvalDecisionRepository;
+
+  @MockitoBean private HistoryEntryRepository historyEntryRepository;
+
+  @MockitoBean private FinancialAccountTimelineRepository financialAccountTimelineRepository;
 
   @Test
   void contextLoads() {

@@ -10,6 +10,7 @@ import com.financeiro.company.domain.*;
 import com.financeiro.costcenter.application.*;
 import com.financeiro.costcenter.domain.CostCenter;
 import com.financeiro.financialaccount.domain.*;
+import com.financeiro.history.application.HistoryEntryRepository;
 import com.financeiro.partner.application.*;
 import com.financeiro.partner.domain.*;
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 class FinancialAccountUseCasesTest {
@@ -26,8 +28,10 @@ class FinancialAccountUseCasesTest {
   CategoryRepository categories = mock(CategoryRepository.class);
   CostCenterRepository costCenters = mock(CostCenterRepository.class);
   FinancialAccountRepository accounts = mock(FinancialAccountRepository.class);
+  HistoryEntryRepository history = mock(HistoryEntryRepository.class);
   CreateFinancialAccount create =
-      new CreateFinancialAccount(companies, branches, partners, categories, costCenters, accounts);
+      new CreateFinancialAccount(
+          companies, branches, partners, categories, costCenters, accounts, history);
 
   @BeforeEach
   void validReferences() {
@@ -36,17 +40,24 @@ class FinancialAccountUseCasesTest {
         .thenReturn(Optional.of(Branch.rehydrate(2L, 1L, "Branch")));
     when(categories.findByCompanyIdAndId(1L, 4L))
         .thenReturn(Optional.of(Category.rehydrate(4L, 1L, "Category", true)));
+    when(accounts.save(any())).thenAnswer(inv -> persisted(inv.getArgument(0)));
   }
 
   @Test
-  void createsPayableForActiveSupplierWithoutCostCenter() {
+  void createsPayableForActiveSupplierWithoutCostCenterAndRecordsCreationHistory() {
     when(partners.findById(3L))
         .thenReturn(Optional.of(partner(Set.of(PartnerRole.SUPPLIER), true)));
-    when(accounts.save(any())).thenAnswer(inv -> inv.getArgument(0));
     var result = create.execute(command(FinancialAccountType.PAYABLE, null));
     assertThat(result.status()).isEqualTo(FinancialAccountStatus.DRAFT);
-    verify(accounts).save(result);
+    verify(accounts).save(any(FinancialAccount.class));
     verifyNoInteractions(costCenters);
+
+    var entry = ArgumentCaptor.forClass(com.financeiro.history.domain.HistoryEntry.class);
+    verify(history).save(entry.capture());
+    assertThat(entry.getValue().type())
+        .isEqualTo(com.financeiro.history.domain.HistoryEntryType.CREATED);
+    assertThat(entry.getValue().financialAccountId()).isEqualTo(result.id());
+    assertThat(entry.getValue().actorId()).isNull();
   }
 
   @Test
@@ -55,7 +66,6 @@ class FinancialAccountUseCasesTest {
         .thenReturn(Optional.of(partner(Set.of(PartnerRole.CUSTOMER, PartnerRole.SUPPLIER), true)));
     when(costCenters.findByCompanyIdAndId(1L, 5L))
         .thenReturn(Optional.of(CostCenter.rehydrate(5L, 1L, "Cost", true)));
-    when(accounts.save(any())).thenAnswer(inv -> inv.getArgument(0));
     assertThat(create.execute(command(FinancialAccountType.RECEIVABLE, 5L)).costCenterId())
         .isEqualTo(5L);
   }
@@ -64,12 +74,11 @@ class FinancialAccountUseCasesTest {
   void createsReceivableForActiveCustomerOnly() {
     when(partners.findById(3L))
         .thenReturn(Optional.of(partner(Set.of(PartnerRole.CUSTOMER), true)));
-    when(accounts.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
     var result = create.execute(command(FinancialAccountType.RECEIVABLE, null));
 
     assertThat(result.type()).isEqualTo(FinancialAccountType.RECEIVABLE);
-    verify(accounts).save(result);
+    verify(accounts).save(any(FinancialAccount.class));
   }
 
   @Test
@@ -87,7 +96,7 @@ class FinancialAccountUseCasesTest {
             List.of());
     assertThatThrownBy(() -> create.execute(invalid))
         .isInstanceOf(InvalidFinancialAccountException.class);
-    verifyNoInteractions(companies, branches, partners, categories, costCenters, accounts);
+    verifyNoInteractions(companies, branches, partners, categories, costCenters, accounts, history);
   }
 
   @Test
@@ -106,7 +115,7 @@ class FinancialAccountUseCasesTest {
 
     assertThatThrownBy(() -> create.execute(invalid))
         .isInstanceOf(InvalidFinancialAccountException.class);
-    verifyNoInteractions(companies, branches, partners, categories, costCenters, accounts);
+    verifyNoInteractions(companies, branches, partners, categories, costCenters, accounts, history);
   }
 
   @Test
@@ -127,7 +136,7 @@ class FinancialAccountUseCasesTest {
 
     assertThatThrownBy(() -> create.execute(invalid))
         .isInstanceOf(InvalidFinancialAccountException.class);
-    verifyNoInteractions(companies, branches, partners, categories, costCenters, accounts);
+    verifyNoInteractions(companies, branches, partners, categories, costCenters, accounts, history);
   }
 
   @Test
@@ -178,6 +187,7 @@ class FinancialAccountUseCasesTest {
     assertThatThrownBy(() -> create.execute(command(FinancialAccountType.PAYABLE, 5L)))
         .isInstanceOf(CostCenterInactiveException.class);
     verify(accounts, never()).save(any());
+    verify(history, never()).save(any());
   }
 
   @Test
@@ -190,6 +200,7 @@ class FinancialAccountUseCasesTest {
         .isInstanceOf(CategoryNotFoundException.class);
     verify(categories).findByCompanyIdAndId(1L, 4L);
     verify(accounts, never()).save(any());
+    verify(history, never()).save(any());
   }
 
   @Test
@@ -202,6 +213,7 @@ class FinancialAccountUseCasesTest {
         .isInstanceOf(CostCenterNotFoundException.class);
     verify(costCenters).findByCompanyIdAndId(1L, 5L);
     verify(accounts, never()).save(any());
+    verify(history, never()).save(any());
   }
 
   @Test
@@ -210,17 +222,18 @@ class FinancialAccountUseCasesTest {
         .thenReturn(Optional.of(partner(Set.of(PartnerRole.SUPPLIER), true)));
     when(costCenters.findByCompanyIdAndId(1L, 5L))
         .thenReturn(Optional.of(CostCenter.rehydrate(5L, 1L, "Cost", true)));
-    when(accounts.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
     create.execute(command(FinancialAccountType.PAYABLE, 5L));
 
-    InOrder order = inOrder(companies, branches, partners, categories, costCenters, accounts);
+    InOrder order =
+        inOrder(companies, branches, partners, categories, costCenters, accounts, history);
     order.verify(companies).findById(1L);
     order.verify(branches).findByCompanyIdAndId(1L, 2L);
     order.verify(partners).findById(3L);
     order.verify(categories).findByCompanyIdAndId(1L, 4L);
     order.verify(costCenters).findByCompanyIdAndId(1L, 5L);
     order.verify(accounts).save(any(FinancialAccount.class));
+    order.verify(history).save(any());
   }
 
   @Test
@@ -284,6 +297,32 @@ class FinancialAccountUseCasesTest {
 
   private Partner partner(Set<PartnerRole> roles, boolean active) {
     return Partner.rehydrate(3L, "Partner", Document.of("52998224725"), roles, active);
+  }
+
+  private static FinancialAccount persisted(FinancialAccount candidate) {
+    var installmentId = new long[] {9000L};
+    var installments =
+        candidate.installments().stream()
+            .map(
+                item ->
+                    Installment.rehydrate(
+                        installmentId[0]++,
+                        item.installmentNumber(),
+                        item.dueDate(),
+                        item.amount()))
+            .toList();
+    return FinancialAccount.rehydrate(
+        999L,
+        candidate.companyId(),
+        candidate.branchId(),
+        candidate.type(),
+        candidate.partnerId(),
+        candidate.categoryId(),
+        candidate.costCenterId(),
+        candidate.issueDate(),
+        candidate.totalAmount(),
+        candidate.status(),
+        installments);
   }
 
   private FinancialAccount persisted() {

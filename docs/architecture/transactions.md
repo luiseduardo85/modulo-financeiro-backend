@@ -16,3 +16,11 @@ da FinancialMovement de reversal, eventual transição `SETTLED -> APPROVED` e
 conclusão idempotente ocorrem igualmente na mesma transação Application. A
 FinancialMovement original nunca é apagada ou atualizada; somente uma nova
 linha é inserida.
+
+Em FUNC-009, o registro de um evento de histórico (`CREATED` em
+`CreateFinancialAccount`, `APPROVED_WITHOUT_WORKFLOW` em
+`SubmitFinancialAccountForApproval`) ocorre na mesma transação Application do
+efeito que ele evidencia; uma falha no INSERT de
+`FinancialAccountHistory` reverte também esse efeito. A consulta de histórico
+é somente leitura (`@Transactional(readOnly = true)`) e não cria nem
+modifica nenhuma linha.
