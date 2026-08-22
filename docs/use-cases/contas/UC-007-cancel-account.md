@@ -4,4 +4,4 @@ Permissão: `CONTA_APROVAR`.
 
 APROVADA -> CANCELADA, somente sem movimentações e com justificativa.
 
-API: POST `/api/v1/contas/{id}/cancelar`.
+API futura: POST `/api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/cancel`.

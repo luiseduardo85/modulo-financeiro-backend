@@ -32,6 +32,7 @@ class BankAccountPaymentMethodPersistenceIT {
 
   @BeforeEach
   void clean() {
+    jdbc.update("DELETE FROM \"financialMovement\"");
     jdbc.update("DELETE FROM \"bankAccount\"");
     jdbc.update("DELETE FROM \"paymentMethod\"");
     jdbc.update("DELETE FROM \"costCenter\"");

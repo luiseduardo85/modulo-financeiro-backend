@@ -59,3 +59,15 @@ execute again.
 This infrastructure does not implement a financial operation, authentication,
 authorization, Kafka, Redis, retries, outbox processing, or cleanup jobs. Domain
 has no dependency on HTTP, idempotency, JPA, PostgreSQL, or logging infrastructure.
+
+## Settlement consumer
+
+FUNC-007 consome esta infraestrutura com operação `SETTLE_INSTALLMENT`. O
+fingerprint usa, em ordem: `settlement:v1`, operação, companyId,
+financialAccountId, installmentId, amount canônico sem zeros insignificantes,
+movementDate ISO, bankAccountId e paymentMethodId. O `resultReference` é o ID
+decimal da FinancialMovement.
+
+Primeira execução e replay concluído retornam 201 e a mesma representação
+imutável da FinancialMovement. Saldos derivados não fazem parte da resposta,
+evitando que settlements posteriores alterem a semântica do replay.

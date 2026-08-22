@@ -20,3 +20,11 @@ JWT, OIDC, login e o formato da identidade externa continuam deferidos.
 Enquanto o contexto confiavel nao estiver disponivel, as acoes respondem com
 HTTP 401 e o codigo estavel `APPROVAL_ACTOR_REQUIRED`. Esse contrato de
 transporte preserva o comportamento fail-closed e nao implementa autenticacao.
+
+## Limite temporário de settlement
+
+`CONTA_LIQUIDAR` permanece requisito conceitual, mas a infraestrutura ampla de
+autorização ainda está deferida. FUNC-007 não persiste ator, não reutiliza
+`ApprovalActorContext`, não cria contexto próprio e não aceita identidade por
+payload, header, query ou path. A aplicação técnica dessa permissão deve ser
+conectada quando o contrato geral de autenticação/autorização for aprovado.

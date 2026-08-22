@@ -27,6 +27,8 @@ import com.financeiro.financialaccount.application.PartnerRoleNotAllowedExceptio
 import com.financeiro.financialaccount.domain.InvalidFinancialAccountException;
 import com.financeiro.financialaccount.domain.InvalidFinancialAccountStatusException;
 import com.financeiro.financialaccount.domain.InvalidInstallmentException;
+import com.financeiro.financialmovement.application.*;
+import com.financeiro.financialmovement.domain.InvalidFinancialMovementException;
 import com.financeiro.idempotency.application.IdempotencyConflictException;
 import com.financeiro.idempotency.application.IdempotencyInProgressException;
 import com.financeiro.partner.application.InvalidPartnerPageException;
@@ -135,6 +137,54 @@ public class GlobalExceptionHandler {
       FinancialAccountNotFoundException exception) {
     return response(
         HttpStatus.NOT_FOUND, "FINANCIAL_ACCOUNT_NOT_FOUND", exception.getMessage(), List.of());
+  }
+
+  @ExceptionHandler(FinancialAccountNotSettleableException.class)
+  public ResponseEntity<ErrorResponse> handleFinancialAccountNotSettleable(
+      FinancialAccountNotSettleableException exception) {
+    return api(ApiErrorType.FINANCIAL_ACCOUNT_NOT_SETTLEABLE, exception);
+  }
+
+  @ExceptionHandler(InstallmentNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleInstallmentNotFound(
+      InstallmentNotFoundException exception) {
+    return api(ApiErrorType.INSTALLMENT_NOT_FOUND, exception);
+  }
+
+  @ExceptionHandler(InstallmentAlreadySettledException.class)
+  public ResponseEntity<ErrorResponse> handleInstallmentAlreadySettled(
+      InstallmentAlreadySettledException exception) {
+    return api(ApiErrorType.INSTALLMENT_ALREADY_SETTLED, exception);
+  }
+
+  @ExceptionHandler(SettlementAmountExceedsBalanceException.class)
+  public ResponseEntity<ErrorResponse> handleSettlementAmountExceedsBalance(
+      SettlementAmountExceedsBalanceException exception) {
+    return api(ApiErrorType.SETTLEMENT_AMOUNT_EXCEEDS_BALANCE, exception);
+  }
+
+  @ExceptionHandler(BankAccountInactiveException.class)
+  public ResponseEntity<ErrorResponse> handleBankAccountInactive(
+      BankAccountInactiveException exception) {
+    return api(ApiErrorType.BANK_ACCOUNT_INACTIVE, exception);
+  }
+
+  @ExceptionHandler(BankAccountBranchNotAllowedException.class)
+  public ResponseEntity<ErrorResponse> handleBankAccountBranchNotAllowed(
+      BankAccountBranchNotAllowedException exception) {
+    return api(ApiErrorType.BANK_ACCOUNT_BRANCH_NOT_ALLOWED, exception);
+  }
+
+  @ExceptionHandler(PaymentMethodInactiveException.class)
+  public ResponseEntity<ErrorResponse> handlePaymentMethodInactive(
+      PaymentMethodInactiveException exception) {
+    return api(ApiErrorType.PAYMENT_METHOD_INACTIVE, exception);
+  }
+
+  @ExceptionHandler(SettlementConflictException.class)
+  public ResponseEntity<ErrorResponse> handleSettlementConflict(
+      SettlementConflictException exception) {
+    return api(ApiErrorType.SETTLEMENT_CONFLICT, exception);
   }
 
   @ExceptionHandler(PartnerInactiveException.class)
@@ -253,6 +303,7 @@ public class GlobalExceptionHandler {
     InvalidApprovalConfigurationException.class,
     InvalidApprovalRequestException.class,
     InvalidApprovalDecisionException.class,
+    InvalidFinancialMovementException.class,
     ConstraintViolationException.class,
     MethodArgumentTypeMismatchException.class
   })
@@ -312,6 +363,10 @@ public class GlobalExceptionHandler {
   private ResponseEntity<ErrorResponse> response(
       HttpStatus status, String code, String message, List<ValidationErrorDetail> details) {
     return response(status, code, message, details, traceIdProvider.currentTraceId());
+  }
+
+  private ResponseEntity<ErrorResponse> api(ApiErrorType type, RuntimeException exception) {
+    return response(type.status(), type.code(), exception.getMessage(), List.of());
   }
 
   private ResponseEntity<ErrorResponse> response(

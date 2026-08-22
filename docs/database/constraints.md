@@ -26,3 +26,9 @@ ApprovalRequest referencia FinancialAccount sem cascade e admite no máximo um
 registro PENDING por conta. ApprovalDecision referencia ApprovalRequest sem
 cascade, admite uma decisão por request e exige justificativa somente para
 REJECTED.
+
+FinancialMovement possui FKs escalares para Installment, BankAccount e
+PaymentMethod, sem cascade; CHECK restringe tipo a `PAYMENT`/`RECEIPT` e amount
+positivo. PostgreSQL não prova tipo financeiro, saldo restante, Company/Branch
+das referências ou estado ativo; Application aplica essas regras sob a
+serialização otimista da FinancialAccount.

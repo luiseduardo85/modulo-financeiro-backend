@@ -7,6 +7,7 @@ GET /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/submit-for-approval
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/approve
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/reject
+POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/installments/{installmentId}/settlements
 
 Criação recebe `branchId`, `type`, `partnerId`, `categoryId`, `costCenterId`
 opcional, `issueDate`, `totalAmount` e `installments`. Retorna 201 e `Location`.
@@ -18,11 +19,15 @@ As ações de FUNC-006 obtêm o ator somente por `ApprovalActorContext`, não ex
 `Idempotency-Key` e retornam o FinancialAccount completo atualizado. Submit e
 approve não possuem campos de negócio; reject recebe exatamente `justification`.
 
+Settlement em FUNC-007 exige `Idempotency-Key` e recebe exatamente `amount`,
+`movementDate`, `bankAccountId` e `paymentMethodId`. Retorna 201 e representa a
+FinancialMovement imutável criada, com `PAYMENT`/`RECEIPT` derivado do tipo da
+FinancialAccount. Replay concluído retorna a mesma identidade e representação.
+
 Endpoints futuros, fora de FUNC-006:
 PUT /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
 DELETE /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/cancel
-POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/installments/{installmentId}/settlements
 POST /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/movements/{movementId}/reverse
 GET /api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/history
 

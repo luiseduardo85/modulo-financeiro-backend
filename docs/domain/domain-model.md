@@ -34,9 +34,16 @@ Entity interna do Aggregate FinancialAccount.
 No FUNC-005: `id`, `installmentNumber`, `dueDate` e `amount`.
 Saldo é derivado.
 
-## MovimentacaoFinanceira
-Tipos: PAGAMENTO, RECEBIMENTO, ESTORNO.
-Campos conceituais: id, tipo, valor, dataHora, paymentMethodId, bankAccountId, usuarioId, movimentacaoOriginalId.
+## FinancialMovement
+
+FUNC-007 implementa FinancialMovement como entidade/aggregate separado, sem
+coleção em FinancialAccount. `FinancialMovementType` possui somente `PAYMENT` e
+`RECEIPT`. Campos: `id`, `installmentId`, `type`, `amount`, `movementDate`,
+`bankAccountId` e `paymentMethodId`.
+
+`movementDate` usa `LocalDate`; saldo é derivado por projeções sobre movimentos.
+FinancialMovement é imutável e não possui actor, status, saldo ou campos de
+Reversal. Reversal criará nova movimentação em slice futuro.
 
 ## HistoricoConta
 Entity de domínio persistida separadamente do carregamento normal do Aggregate.

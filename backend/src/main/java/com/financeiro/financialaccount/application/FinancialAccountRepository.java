@@ -9,6 +9,10 @@ public interface FinancialAccountRepository {
 
   FinancialAccount updateStatus(FinancialAccount account);
 
+  void forceSettlementVersionIncrement(Long companyId, Long financialAccountId);
+
+  FinancialAccount updateSettlementStatus(FinancialAccount account);
+
   Optional<FinancialAccount> findByCompanyIdAndId(Long companyId, Long financialAccountId);
 
   PageResult<FinancialAccountSummary> findSummaryPageByCompanyId(

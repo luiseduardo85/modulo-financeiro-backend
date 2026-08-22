@@ -38,6 +38,15 @@
 - RN-LIQUIDACAO-003: `PAYABLE` gera pagamento; `RECEIVABLE` gera recebimento.
 - RN-LIQUIDACAO-004: saldo é derivado das movimentações.
 - RN-LIQUIDACAO-005: todas parcelas com saldo zero => `APPROVED` -> `SETTLED`.
+- RN-LIQUIDACAO-006: cada liquidação persiste uma `FinancialMovement` imutável;
+  `PAYMENT` e `RECEIPT` são os únicos tipos de FUNC-007.
+- RN-LIQUIDACAO-007: BankAccount e PaymentMethod são obrigatórios, devem
+  pertencer à Company e estar ativos; BankAccount restrita a Branch somente pode
+  ser usada pela mesma Branch da FinancialAccount.
+- RN-LIQUIDACAO-008: `movementDate` é LocalDate obrigatório, sem default ou
+  limitação automática de passado/futuro.
+- RN-LIQUIDACAO-009: settlement exige TECH-010 e cada operação incrementa a
+  versão otimista da FinancialAccount para impedir overpayment concorrente.
 
 ## Estorno
 - RN-ESTORNO-001: estorno é nova movimentação vinculada à original.

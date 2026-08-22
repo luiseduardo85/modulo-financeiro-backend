@@ -13,8 +13,10 @@ APPROVED -> SETTLED (todas parcelas com saldo zero)
 
 SETTLED -> APPROVED (estorno que reabre saldo)
 
-FUNC-006 implementa somente as quatro transições de aprovação acima. As
-transições de cancelamento, liquidação e estorno permanecem requisitos de slices futuros.
+FUNC-006 implementa as quatro transições de aprovação. FUNC-007 implementa
+somente `APPROVED -> SETTLED`, depois de a Application provar por saldo derivado
+que todas as Installments estão zeradas. Cancelamento e `SETTLED -> APPROVED`
+por Reversal permanecem requisitos de slices futuros.
 
 Estados não persistidos como principal:
 VENCIDA, REJEITADA, PARCIALMENTE_LIQUIDADA, ESTORNADA.

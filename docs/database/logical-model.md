@@ -7,9 +7,13 @@ Company -> BankAccount
 Company -> PaymentMethod
 BankAccount -> Branch (opcional; restricao a uma unica Branch)
 Company -> FinancialAccount -> Installment
+Installment -> FinancialMovement
 
 FinancialAccount referencia Branch, Partner, Category e CostCenter opcional por
-IDs escalares. Movimentação financeira permanece fora do FUNC-005.
+IDs escalares.
+FinancialMovement é separada do Aggregate carregado de FinancialAccount e
+referencia Installment por ID escalar. Company e FinancialAccount são derivados
+pela cadeia de ownership, sem colunas redundantes.
 Partner é global e não possui relação com Company.
 
 Usuario -> UsuarioEmpresa -> UsuarioEmpresaPerfil -> Perfil -> PerfilPermissao -> Permissao.

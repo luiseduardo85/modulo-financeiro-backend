@@ -41,6 +41,14 @@ Codigos tecnicos iniciais:
 - `BANK_ACCOUNT_NOT_FOUND`: BankAccount nao encontrada no escopo da Company informada;
 - `PAYMENT_METHOD_NOT_FOUND`: PaymentMethod nao encontrado no escopo da Company informada;
 - `FINANCIAL_ACCOUNT_NOT_FOUND`: FinancialAccount não encontrada no escopo da Company;
+- `FINANCIAL_ACCOUNT_NOT_SETTLEABLE`: FinancialAccount não está `APPROVED` para settlement (HTTP 409);
+- `INSTALLMENT_NOT_FOUND`: Installment não pertence à FinancialAccount no escopo informado (HTTP 404);
+- `INSTALLMENT_ALREADY_SETTLED`: Installment não possui saldo restante (HTTP 409);
+- `SETTLEMENT_AMOUNT_EXCEEDS_BALANCE`: valor supera o saldo derivado da Installment (HTTP 422);
+- `BANK_ACCOUNT_INACTIVE`: BankAccount inativa não entra em novo settlement (HTTP 422);
+- `BANK_ACCOUNT_BRANCH_NOT_ALLOWED`: BankAccount não está disponível para a Branch da FinancialAccount (HTTP 422);
+- `PAYMENT_METHOD_INACTIVE`: PaymentMethod inativo não entra em novo settlement (HTTP 422);
+- `SETTLEMENT_CONFLICT`: conflito otimista entre settlements concorrentes (HTTP 409);
 - `PARTNER_INACTIVE`: Partner inativo não pode ser usado em novo lançamento;
 - `PARTNER_ROLE_NOT_ALLOWED`: Partner não possui o papel exigido por `PAYABLE`/`RECEIVABLE`;
 - `CATEGORY_INACTIVE`: Category inativa não pode ser usada em novo lançamento;

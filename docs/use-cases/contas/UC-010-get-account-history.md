@@ -4,4 +4,4 @@ Permissão: `CONTA_VISUALIZAR`.
 
 Histórico consultado separadamente do Aggregate.
 
-API: GET `/api/v1/contas/{id}/historico`.
+API futura: GET `/api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/history`.

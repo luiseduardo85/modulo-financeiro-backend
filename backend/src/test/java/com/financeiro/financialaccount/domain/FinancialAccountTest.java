@@ -9,6 +9,24 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class FinancialAccountTest {
+
+  @Test
+  void approvedAccountCanBeMarkedSettledAndAllOtherStatusesCannot() {
+    var approved = rehydrate(FinancialAccountStatus.APPROVED);
+    approved.markAsSettled();
+    assertThat(approved.status()).isEqualTo(FinancialAccountStatus.SETTLED);
+
+    for (FinancialAccountStatus status :
+        List.of(
+            FinancialAccountStatus.DRAFT,
+            FinancialAccountStatus.PENDING_APPROVAL,
+            FinancialAccountStatus.SETTLED,
+            FinancialAccountStatus.CANCELLED)) {
+      assertThatThrownBy(() -> rehydrate(status).markAsSettled())
+          .isInstanceOf(InvalidFinancialAccountStatusException.class);
+    }
+  }
+
   private static final LocalDate DATE = LocalDate.of(2026, 8, 21);
 
   @Test

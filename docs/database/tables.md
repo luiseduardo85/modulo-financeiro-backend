@@ -3,7 +3,7 @@
 Nomes físicos usam camelCase e preservam casing no PostgreSQL.
 
 Principais tabelas:
-`"company"`, `"branch"`, `"partner"`, `"category"`, `"costCenter"`, `"bankAccount"`, `"paymentMethod"`, `"financialAccount"`, `"installment"`, `"movimentacaoFinanceira"`, `"historicoConta"`, `"usuario"`, `"usuarioEmpresa"`, `"usuarioEmpresaPerfil"`, `"perfil"`, `"perfilPermissao"`, `"permissao"`.
+`"company"`, `"branch"`, `"partner"`, `"category"`, `"costCenter"`, `"bankAccount"`, `"paymentMethod"`, `"financialAccount"`, `"installment"`, `"financialMovement"`, `"historicoConta"`, `"usuario"`, `"usuarioEmpresa"`, `"usuarioEmpresaPerfil"`, `"perfil"`, `"perfilPermissao"`, `"permissao"`.
 
 `"bankAccount"` contem somente `"id"`, `"companyId"`, `"branchId"`, `"name"`
 e `"active"`. `"branchId"` e anulavel. FKs garantem que Company e Branch
@@ -32,3 +32,8 @@ FUNC-006 adiciona `"approvalConfiguration"`, `"approvalRequest"` e
 `"approvalDecision"`. Elas usam IDs escalares e preservam configuração,
 solicitante, decisor e justificativa sem criar tabela genérica de histórico ou
 FK para ator externo.
+
+FUNC-007 adiciona `"financialMovement"` com `"id"`, `"installmentId"`,
+`"type"`, `"amount"`, `"movementDate"`, `"bankAccountId"` e
+`"paymentMethodId"`. Não há companyId/financialAccountId redundantes, saldo,
+ator, status, timestamps ou campos de Reversal.

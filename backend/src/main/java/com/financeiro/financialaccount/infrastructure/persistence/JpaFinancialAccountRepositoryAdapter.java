@@ -5,6 +5,10 @@ import com.financeiro.company.application.PageResult;
 import com.financeiro.financialaccount.application.*;
 import com.financeiro.financialaccount.domain.FinancialAccount;
 import com.financeiro.financialaccount.domain.Installment;
+import com.financeiro.financialmovement.application.SettlementConflictException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PersistenceContext;
 import java.util.Optional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +20,8 @@ import org.springframework.stereotype.Repository;
 @Profile("!test")
 public class JpaFinancialAccountRepositoryAdapter implements FinancialAccountRepository {
   private final SpringDataFinancialAccountRepository repository;
+
+  @PersistenceContext private EntityManager entityManager;
 
   public JpaFinancialAccountRepositoryAdapter(SpringDataFinancialAccountRepository repository) {
     this.repository = repository;
@@ -38,6 +44,47 @@ public class JpaFinancialAccountRepositoryAdapter implements FinancialAccountRep
       return toDomain(managed);
     } catch (ObjectOptimisticLockingFailureException exception) {
       throw new ApprovalConflictException(exception);
+    }
+  }
+
+  @Override
+  public void forceSettlementVersionIncrement(Long companyId, Long financialAccountId) {
+    try {
+      var managed =
+          repository
+              .findByCompanyIdAndId(companyId, financialAccountId)
+              .orElseThrow(() -> new IllegalStateException("Managed FinancialAccount is missing"));
+      int updated =
+          entityManager
+              .createNativeQuery(
+                  """
+                  UPDATE "financialAccount"
+                  SET "version" = "version" + 1
+                  WHERE "id" = :id AND "companyId" = :companyId AND "version" = :version
+                  """)
+              .setParameter("id", financialAccountId)
+              .setParameter("companyId", companyId)
+              .setParameter("version", managed.version())
+              .executeUpdate();
+      if (updated != 1) throw new SettlementConflictException(null);
+      entityManager.refresh(managed);
+    } catch (OptimisticLockException | ObjectOptimisticLockingFailureException exception) {
+      throw new SettlementConflictException(exception);
+    }
+  }
+
+  @Override
+  public FinancialAccount updateSettlementStatus(FinancialAccount value) {
+    try {
+      var managed =
+          repository
+              .findByCompanyIdAndId(value.companyId(), value.id())
+              .orElseThrow(() -> new IllegalStateException("Managed FinancialAccount is missing"));
+      managed.applyStatus(value.status());
+      repository.flush();
+      return toDomain(managed);
+    } catch (OptimisticLockException | ObjectOptimisticLockingFailureException exception) {
+      throw new SettlementConflictException(exception);
     }
   }
 

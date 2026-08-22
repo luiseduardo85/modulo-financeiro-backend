@@ -17,7 +17,8 @@ Candidatos:
   Company-wide (`branchId IS NULL`) e por Branch (`branchId IS NOT NULL`);
 - ApprovalRequest usa índice UNIQUE parcial por `financialAccountId` quando
   `status = 'PENDING'`;
-- movimentação por parcela+data;
+- FinancialMovement usa `"ixFinancialMovementInstallmentDate"` por
+  `installmentId`, `movementDate`, `id` para somas e acesso por Installment;
 - movimentação original;
 - joins de autorização.
 

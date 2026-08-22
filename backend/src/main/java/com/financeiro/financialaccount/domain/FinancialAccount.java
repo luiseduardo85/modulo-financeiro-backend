@@ -202,6 +202,11 @@ public final class FinancialAccount {
     status = FinancialAccountStatus.DRAFT;
   }
 
+  public void markAsSettled() {
+    requireStatus(FinancialAccountStatus.APPROVED);
+    status = FinancialAccountStatus.SETTLED;
+  }
+
   private void requireStatus(FinancialAccountStatus required) {
     if (status != required) {
       throw new InvalidFinancialAccountStatusException(status, required);

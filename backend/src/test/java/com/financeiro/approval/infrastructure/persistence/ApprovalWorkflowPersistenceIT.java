@@ -59,6 +59,7 @@ class ApprovalWorkflowPersistenceIT {
   @BeforeEach
   @AfterEach
   void clean() {
+    jdbc.update("DELETE FROM \"financialMovement\"");
     fixtureSequence = 0;
     jdbc.execute("DROP TRIGGER IF EXISTS \"failApprovalRequestInsert\" ON \"approvalRequest\"");
     jdbc.execute("DROP TRIGGER IF EXISTS \"failApprovalDecisionInsert\" ON \"approvalDecision\"");
