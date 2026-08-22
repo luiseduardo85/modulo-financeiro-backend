@@ -6,6 +6,8 @@ import com.financeiro.financialaccount.application.FinancialAccountRepository;
 import com.financeiro.financialaccount.domain.FinancialAccount;
 import com.financeiro.financialaccount.domain.FinancialAccountStatus;
 import com.financeiro.financialaccount.domain.InvalidFinancialAccountStatusException;
+import com.financeiro.history.application.HistoryEntryRepository;
+import com.financeiro.history.domain.HistoryEntry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,16 +17,19 @@ public class SubmitFinancialAccountForApproval {
   private final FinancialAccountRepository accounts;
   private final ApprovalConfigurationRepository configurations;
   private final ApprovalRequestRepository requests;
+  private final HistoryEntryRepository history;
 
   public SubmitFinancialAccountForApproval(
       ApprovalActorContext actors,
       FinancialAccountRepository accounts,
       ApprovalConfigurationRepository configurations,
-      ApprovalRequestRepository requests) {
+      ApprovalRequestRepository requests,
+      HistoryEntryRepository history) {
     this.actors = actors;
     this.accounts = accounts;
     this.configurations = configurations;
     this.requests = requests;
+    this.history = history;
   }
 
   @Transactional
@@ -39,7 +44,9 @@ public class SubmitFinancialAccountForApproval {
             .orElse(false);
     if (!required) {
       account.approveWithoutWorkflow();
-      return accounts.updateStatus(account);
+      var updated = accounts.updateStatus(account);
+      history.save(HistoryEntry.approvedWithoutWorkflow(updated.id(), actor.actorId()));
+      return updated;
     }
     account.submitForApproval();
     var updated = accounts.updateStatus(account);

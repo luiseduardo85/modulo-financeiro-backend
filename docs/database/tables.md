@@ -3,7 +3,7 @@
 Nomes físicos usam camelCase e preservam casing no PostgreSQL.
 
 Principais tabelas:
-`"company"`, `"branch"`, `"partner"`, `"category"`, `"costCenter"`, `"bankAccount"`, `"paymentMethod"`, `"financialAccount"`, `"installment"`, `"financialMovement"`, `"historicoConta"`, `"usuario"`, `"usuarioEmpresa"`, `"usuarioEmpresaPerfil"`, `"perfil"`, `"perfilPermissao"`, `"permissao"`.
+`"company"`, `"branch"`, `"partner"`, `"category"`, `"costCenter"`, `"bankAccount"`, `"paymentMethod"`, `"financialAccount"`, `"installment"`, `"financialMovement"`, `"financialAccountHistory"`, `"usuario"`, `"usuarioEmpresa"`, `"usuarioEmpresaPerfil"`, `"perfil"`, `"perfilPermissao"`, `"permissao"`.
 
 `"bankAccount"` contem somente `"id"`, `"companyId"`, `"branchId"`, `"name"`
 e `"active"`. `"branchId"` e anulavel. FKs garantem que Company e Branch
@@ -43,3 +43,12 @@ tabela `"financialMovement"` e amplia `"type"` para também aceitar
 `REVERSAL_PAYMENT`/`REVERSAL_RECEIPT`. Não há tabela separada de reversal:
 reversal é uma linha adicional imutável na mesma tabela append-only,
 referenciando a movimentação original pelo próprio ID.
+
+FUNC-009 adiciona `"financialAccountHistory"` com `"id"`,
+`"financialAccountId"`, `"type"` (`CREATED`/`APPROVED_WITHOUT_WORKFLOW`),
+`"actorId"` (nulo em `CREATED`) e `"createdAt"`. Também adiciona `"createdAt"`
+(`TIMESTAMPTZ NOT NULL DEFAULT now()`) a `"approvalRequest"`,
+`"approvalDecision"` e `"financialMovement"` para permitir ordenação
+determinística da timeline composta; essas três colunas não são mapeadas
+pelas Entities JPA existentes e são preenchidas somente pelo `DEFAULT` do
+banco.

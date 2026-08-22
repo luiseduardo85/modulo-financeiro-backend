@@ -9,6 +9,7 @@ BankAccount -> Branch (opcional; restricao a uma unica Branch)
 Company -> FinancialAccount -> Installment
 Installment -> FinancialMovement
 FinancialMovement -> FinancialMovement (originalMovementId, opcional, auto-referenciado)
+FinancialAccount -> FinancialAccountHistory
 
 FinancialAccount referencia Branch, Partner, Category e CostCenter opcional por
 IDs escalares.
@@ -22,4 +23,8 @@ Partner é global e não possui relação com Company.
 
 Usuario -> UsuarioEmpresa -> UsuarioEmpresaPerfil -> Perfil -> PerfilPermissao -> Permissao.
 
-HistoricoConta referencia ContaFinanceira e é persistido separadamente do carregamento normal do Aggregate.
+FinancialAccountHistory referencia FinancialAccount e é persistido
+separadamente do carregamento normal do Aggregate. A timeline de histórico
+(FUNC-009) não lê somente essa tabela: compõe eventos de
+FinancialAccountHistory, ApprovalRequest/ApprovalDecision e FinancialMovement,
+todos derivados transitivamente de FinancialAccount.

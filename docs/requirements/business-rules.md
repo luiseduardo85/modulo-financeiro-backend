@@ -24,7 +24,7 @@
 - RN-APROVACAO-008: cada envio que exige fluxo cria um novo `ApprovalRequest`; somente um pode permanecer `PENDING` por FinancialAccount.
 - RN-APROVACAO-009: aprovação/rejeição produz uma única `ApprovalDecision` para o ciclo. Rejeição persiste justificativa normalizada, não branca, com no máximo 500 caracteres. Auto-rejeição é permitida para ator elegível.
 - RN-APROVACAO-010: `ApprovalActorContext` fornece a identidade confiável e `ApprovalEligibility` verifica `CONTA_APROVAR` na Company. Identidade não é aceita do payload, rota ou header público arbitrário.
-- RN-APROVACAO-011: `ApprovalRequest` e `ApprovalDecision` são dados obrigatórios do workflow. O histórico completo de FinancialAccount continua requisito final, com persistência genérica deferida ao slice History.
+- RN-APROVACAO-011: `ApprovalRequest` e `ApprovalDecision` são dados obrigatórios do workflow e são reutilizados como evidência própria pelo histórico de FUNC-009, sem duplicação.
 
 ## Cancelamento
 - RN-CANCELAMENTO-001: `CONTA_APROVAR` cobre aprovar, rejeitar e cancelar.
@@ -69,6 +69,22 @@
   FinancialAccount usada por FUNC-007, para impedir over-reversal concorrente.
 - RN-ESTORNO-011: a movimentação efetiva nunca é apagada nem atualizada;
   reversal é sempre uma nova linha append-only.
+
+## Histórico
+- RN-HISTORICO-001: histórico é append-only; nenhuma linha é apagada ou
+  atualizada.
+- RN-HISTORICO-002: a criação de FinancialAccount sempre produz um evento
+  `CREATED` sem ator, pois FUNC-005 não possui contexto de ator confiável.
+- RN-HISTORICO-003: submissão sem fluxo de aprovação aplicável (`DRAFT` ->
+  `APPROVED` direto) produz um evento `APPROVED_WITHOUT_WORKFLOW` com o ator
+  confiável do `ApprovalActorContext`, pois nenhuma outra entidade evidencia
+  essa transição.
+- RN-HISTORICO-004: `ApprovalRequest`, `ApprovalDecision` e `FinancialMovement`
+  já são evidências próprias de seus eventos e não são duplicadas por um
+  registro genérico de histórico.
+- RN-HISTORICO-005: a consulta de histórico compõe uma única timeline
+  ordenada deterministicamente a partir dessas quatro fontes, escopada por
+  Company através da FinancialAccount.
 
 ## Situações derivadas
 - RN-SITUACAO-001: vencida = vencimento anterior a hoje + saldo pendente.

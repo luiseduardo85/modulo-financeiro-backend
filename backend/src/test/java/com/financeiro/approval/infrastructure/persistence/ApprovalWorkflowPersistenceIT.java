@@ -68,6 +68,7 @@ class ApprovalWorkflowPersistenceIT {
     jdbc.update("DELETE FROM \"approvalDecision\"");
     jdbc.update("DELETE FROM \"approvalRequest\"");
     jdbc.update("DELETE FROM \"approvalConfiguration\"");
+    jdbc.update("DELETE FROM \"financialAccountHistory\"");
     jdbc.update("DELETE FROM \"installment\"");
     jdbc.update("DELETE FROM \"financialAccount\"");
     jdbc.update("DELETE FROM \"bankAccount\"");

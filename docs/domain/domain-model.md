@@ -55,8 +55,22 @@ movimentação nunca supera o valor original, e um reversal nunca referencia
 outro reversal — essa invariante é reforçada tanto no domínio
 (`FinancialMovementType.reversalType()`) quanto na Application.
 
-## HistoricoConta
-Entity de domínio persistida separadamente do carregamento normal do Aggregate.
+## FinancialAccountHistory
+
+FUNC-009 implementa append-only, técnico e minimalista: apenas dois eventos
+que nenhuma outra entidade evidencia, `CREATED` e `APPROVED_WITHOUT_WORKFLOW`.
+Campos: `id`, `financialAccountId`, `type` e `actorId` (nulo em `CREATED`;
+obrigatório em `APPROVED_WITHOUT_WORKFLOW`, capturado do mesmo
+`ApprovalActorContext` confiável usado pelo workflow). Não há UPDATE/DELETE:
+`HistoryEntryRepository` expõe somente `save`.
+
+O endpoint de histórico não lê apenas esta tabela; ele compõe uma timeline a
+partir de `FinancialAccountHistory` + `ApprovalRequest`/`ApprovalDecision` +
+`FinancialMovement`, pois essas três já são evidências próprias e não são
+duplicadas. A ordenação usa um `createdAt` técnico UTC adicionado por FUNC-009
+a `approvalRequest`, `approvalDecision` e `financialMovement` (colunas não
+mapeadas pelas Entities JPA existentes, preenchidas por `DEFAULT now()`), mais
+uma prioridade de fase determinística como desempate.
 
 ## Outros Aggregates/Entities
 Company, Branch, Partner, Category, CostCenter, BankAccount, PaymentMethod, Usuario, UsuarioEmpresa, UsuarioEmpresaPerfil, Perfil, PerfilPermissao, Permissao.
