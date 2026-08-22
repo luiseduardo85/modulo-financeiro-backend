@@ -33,8 +33,34 @@ Codigos tecnicos iniciais:
 - `RESOURCE_NOT_FOUND`: recurso nao encontrado;
 - `COMPANY_NOT_FOUND`: Company não encontrada;
 - `BRANCH_NOT_FOUND`: Branch não encontrada no escopo da Company informada;
+- `PARTNER_NOT_FOUND`: Partner não encontrado;
+- `PARTNER_DOCUMENT_ALREADY_EXISTS`: documento de Partner já cadastrado globalmente;
+- `INVALID_PARTNER_DOCUMENT`: CPF/CNPJ inválido;
+- `CATEGORY_NOT_FOUND`: Category nao encontrada no escopo da Company informada;
+- `COST_CENTER_NOT_FOUND`: CostCenter nao encontrado no escopo da Company informada;
+- `BANK_ACCOUNT_NOT_FOUND`: BankAccount nao encontrada no escopo da Company informada;
+- `PAYMENT_METHOD_NOT_FOUND`: PaymentMethod nao encontrado no escopo da Company informada;
+- `FINANCIAL_ACCOUNT_NOT_FOUND`: FinancialAccount não encontrada no escopo da Company;
+- `FINANCIAL_ACCOUNT_NOT_SETTLEABLE`: FinancialAccount não está `APPROVED` para settlement (HTTP 409);
+- `INSTALLMENT_NOT_FOUND`: Installment não pertence à FinancialAccount no escopo informado (HTTP 404);
+- `INSTALLMENT_ALREADY_SETTLED`: Installment não possui saldo restante (HTTP 409);
+- `SETTLEMENT_AMOUNT_EXCEEDS_BALANCE`: valor supera o saldo derivado da Installment (HTTP 422);
+- `BANK_ACCOUNT_INACTIVE`: BankAccount inativa não entra em novo settlement (HTTP 422);
+- `BANK_ACCOUNT_BRANCH_NOT_ALLOWED`: BankAccount não está disponível para a Branch da FinancialAccount (HTTP 422);
+- `PAYMENT_METHOD_INACTIVE`: PaymentMethod inativo não entra em novo settlement (HTTP 422);
+- `SETTLEMENT_CONFLICT`: conflito otimista entre settlements/reversals concorrentes (HTTP 409);
+- `FINANCIAL_ACCOUNT_NOT_REVERSIBLE`: FinancialAccount não está `APPROVED`/`SETTLED` para reversal (HTTP 409);
+- `ORIGINAL_MOVEMENT_NOT_FOUND`: FinancialMovement original não pertence ao escopo informado (HTTP 404);
+- `CANNOT_REVERSE_REVERSAL`: a FinancialMovement referenciada já é um reversal (HTTP 422);
+- `ORIGINAL_MOVEMENT_ALREADY_FULLY_REVERSED`: a movimentação original não possui saldo reversível restante (HTTP 409);
+- `REVERSAL_AMOUNT_EXCEEDS_BALANCE`: valor supera o saldo reversível restante da movimentação original (HTTP 422);
+- `PARTNER_INACTIVE`: Partner inativo não pode ser usado em novo lançamento;
+- `PARTNER_ROLE_NOT_ALLOWED`: Partner não possui o papel exigido por `PAYABLE`/`RECEIVABLE`;
+- `CATEGORY_INACTIVE`: Category inativa não pode ser usada em novo lançamento;
+- `COST_CENTER_INACTIVE`: CostCenter inativo não pode ser usado em novo lançamento;
 - `CONFLICT`: conflito de estado ou concorrencia;
 - `INTERNAL_ERROR`: falha interna inesperada.
+- `APPROVAL_ACTOR_REQUIRED`: ator atual confiavel indisponivel para uma acao do workflow de aprovacao (HTTP 401);
 - `IDEMPOTENCY_KEY_REQUIRED`: header `Idempotency-Key` obrigatorio ausente;
 - `INVALID_IDEMPOTENCY_KEY`: header `Idempotency-Key` invalido;
 - `IDEMPOTENCY_KEY_CONFLICT`: chave reutilizada para comando materialmente diferente;
@@ -51,3 +77,8 @@ HTTP:
 409 conflito de estado/concorrência
 422 validação semântica
 500 erro interno
+
+`APPROVAL_ACTOR_REQUIRED` formaliza o comportamento fail-closed enquanto a
+integracao com autenticacao externa permanece deferida. Ele nao representa uma
+implementacao de autenticacao, e nenhum campo, header, query ou path fornecido
+pelo cliente pode suprir `ApprovalActorContext`.

@@ -1,8 +1,14 @@
-# FUNC-002 — Partner
+# Claude Code Handoff — SaaS Financeiro
 
-Fluxo recomendado:
-1. garantir FUNC-001 commitado;
-2. adicionar os documentos deste pacote;
-3. executar o Plan no Codex;
-4. revisar as decisões de Partner/Document/roles/lifecycle;
-5. somente então autorizar implementação.
+Ordem recomendada:
+1. 00-MASTER-CONTEXT.md
+2. 10-CLAUDE-AUTONOMOUS-RULES.md
+3. 01-FUNC007-FINALIZE.md
+4. 02-FUNC008-REVERSAL.md
+5. 03-FUNC009-HISTORY.md
+6. 04-FUNC010-CASH-FLOW.md
+7. 05-FUNC011-DASHBOARD-REPORTS.md
+8. 06-BACKEND-FINAL-AUDIT.md
+9. 07-FRONTEND-DISCOVERY-PLAN.md
+10. 08-FRONTEND-BOOTSTRAP.md
+11. 09-FRONTEND-FEATURES.md

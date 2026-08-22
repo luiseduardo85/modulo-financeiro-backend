@@ -6,10 +6,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ListBranchesByCompany {
-    private final CompanyRepository companies; private final BranchRepository branches;
-    public ListBranchesByCompany(CompanyRepository companies, BranchRepository branches) { this.companies = companies; this.branches = branches; }
-    @Transactional(readOnly = true) public PageResult<Branch> execute(Long companyId, PageQuery query) {
-        companies.findById(companyId).orElseThrow(() -> new CompanyNotFoundException(companyId));
-        return branches.findPageByCompanyId(companyId, query);
-    }
+  private final CompanyRepository companies;
+  private final BranchRepository branches;
+
+  public ListBranchesByCompany(CompanyRepository companies, BranchRepository branches) {
+    this.companies = companies;
+    this.branches = branches;
+  }
+
+  @Transactional(readOnly = true)
+  public PageResult<Branch> execute(Long companyId, PageQuery query) {
+    companies.findById(companyId).orElseThrow(() -> new CompanyNotFoundException(companyId));
+    return branches.findPageByCompanyId(companyId, query);
+  }
 }

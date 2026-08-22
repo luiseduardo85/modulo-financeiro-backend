@@ -16,3 +16,10 @@ Para Company e Branch:
 Parâmetros inválidos retornam HTTP 422 com `VALIDATION_ERROR`. Os campos de
 ordenação são traduzidos por whitelist; valores arbitrários não são repassados
 à persistência.
+
+Partner usa a mesma paginação e aceita somente `id` e `name` com `asc`/`desc`,
+usando `id,asc` por padrão. Não há filtros por documento, role ou active.
+
+FinancialAccount usa os mesmos limites, mas permite somente `id,asc` e
+`id,desc`. Não há filtros no FUNC-005 e a listagem retorna resumos sem
+Installments.

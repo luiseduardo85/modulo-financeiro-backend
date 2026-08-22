@@ -14,6 +14,7 @@ Uma Issue só é considerada concluída quando:
 - [ ] concorrência analisada quando aplicável;
 - [ ] documentação atualizada;
 - [ ] build passando;
+- [ ] Java formatado e validado pelo Spotless;
 - [ ] nenhuma decisão pendente ocultada;
 - [ ] nenhuma feature futura implementada por conveniência;
 - [ ] Pull Request revisado.

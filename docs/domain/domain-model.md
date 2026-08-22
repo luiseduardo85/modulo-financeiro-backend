@@ -1,31 +1,102 @@
 # Domain Model
 
-## Aggregate principal: ContaFinanceira
-Tipos: PAGAR, RECEBER.
+## Aggregate principal: FinancialAccount
+Tipos técnicos: `PAYABLE`, `RECEIVABLE`.
 
 Referências:
-empresaId, filialId, parceiroId, categoriaId, centroCustoId.
+`companyId`, `branchId`, `partnerId`, `categoryId`, `costCenterId` opcional.
 
 Campos principais:
-id, tipo, valorTotal, status, dataEmissao, dataCriacao, parcelas.
+No FUNC-005: `id`, `companyId`, `branchId`, `type`, `partnerId`, `categoryId`,
+`costCenterId`, `issueDate`, `totalAmount`, `status` e `installments`.
 
 Comportamentos:
 criar, alterarDados, adicionarParcela, removerParcela, enviarParaAprovacao, finalizarSemAprovacao, aprovar, rejeitar, cancelar, liquidarParcela, estornarMovimentacao, calcularSaldo, estaVencida.
 
-## Parcela
-Entity do Aggregate ContaFinanceira.
-Campos: id, numero, valor, dataVencimento, movimentacoes.
+FUNC-006 implementa os comportamentos técnicos explícitos
+`submitForApproval`, `approveWithoutWorkflow`, `approve` e `reject`, sem setter
+genérico de status. O campo `version` é exclusivamente de persistência.
+
+## Approval workflow
+
+`ApprovalConfiguration` possui `id`, `companyId`, `branchId` opcional,
+`financialAccountType` e `approvalRequired`. A configuração de Branch precede
+a Company-wide; ausência significa fluxo desabilitado.
+
+`ApprovalRequest` possui `id`, `financialAccountId`, `requesterActorId` e
+`status` (`PENDING`, `APPROVED`, `REJECTED`). `ApprovalDecision` possui `id`,
+`approvalRequestId`, `actorId`, `decision` (`APPROVED`, `REJECTED`) e
+`rejectionJustification` opcional conforme a decisão. Esses registros preservam
+os ciclos obrigatórios de aprovação, sem substituir o futuro histórico completo.
+
+## Installment
+Entity interna do Aggregate FinancialAccount.
+No FUNC-005: `id`, `installmentNumber`, `dueDate` e `amount`.
 Saldo é derivado.
 
-## MovimentacaoFinanceira
-Tipos: PAGAMENTO, RECEBIMENTO, ESTORNO.
-Campos conceituais: id, tipo, valor, dataHora, formaFinanceiraId, contaBancariaId, usuarioId, movimentacaoOriginalId.
+## FinancialMovement
+
+FUNC-007 implementa FinancialMovement como entidade/aggregate separado, sem
+coleção em FinancialAccount. Campos: `id`, `installmentId`, `type`, `amount`,
+`movementDate`, `bankAccountId`, `paymentMethodId` e `originalMovementId`.
+
+`movementDate` usa `LocalDate`; saldo é derivado por projeções sobre movimentos.
+FinancialMovement é imutável, append-only (nunca apagada ou atualizada) e não
+possui actor, status ou saldo persistido.
+
+FUNC-008 amplia `FinancialMovementType` com `REVERSAL_PAYMENT` e
+`REVERSAL_RECEIPT`, além dos `PAYMENT`/`RECEIPT` de FUNC-007. Um reversal é uma
+nova FinancialMovement que referencia a original por `originalMovementId`
+(obrigatório e positivo somente para tipos de reversal; ausente para
+`PAYMENT`/`RECEIPT`). A fábrica `create(...)` continua exclusiva para
+`PAYMENT`/`RECEIPT`; `createReversal(...)` é exclusiva para os tipos de
+reversal. Reversal parcial é permitido, a soma dos reversals de uma
+movimentação nunca supera o valor original, e um reversal nunca referencia
+outro reversal — essa invariante é reforçada tanto no domínio
+(`FinancialMovementType.reversalType()`) quanto na Application.
 
 ## HistoricoConta
 Entity de domínio persistida separadamente do carregamento normal do Aggregate.
 
 ## Outros Aggregates/Entities
-Company, Branch, Parceiro, Categoria, CentroCusto, ContaBancaria, FormaFinanceira, Usuario, UsuarioEmpresa, UsuarioEmpresaPerfil, Perfil, PerfilPermissao, Permissao.
+Company, Branch, Partner, Category, CostCenter, BankAccount, PaymentMethod, Usuario, UsuarioEmpresa, UsuarioEmpresaPerfil, Perfil, PerfilPermissao, Permissao.
+
+## BankAccount / PaymentMethod
+
+BankAccount e um aggregate independente com somente `id: Long`,
+`companyId: Long`, `branchId: Long` opcional, `name: String` e
+`active: boolean`. `companyId` e imutavel. `branchId` nulo significa uso por
+todas as Branches da Company; quando informado, restringe o uso a uma unica
+Branch da mesma Company.
+
+PaymentMethod e um aggregate independente e Company-scoped com somente
+`id: Long`, `companyId: Long`, `name: String` e `active: boolean`. Ele pode ser
+usado futuramente em PAYABLE e RECEIVABLE e nao possui campo de tipo.
+
+Em ambos, o nome usa `String.strip()`, e obrigatorio, nao branco, limitado a 200
+caracteres e pode se repetir. A criacao e ativa; `deactivate()` e a unica
+transicao deste slice. Inativos permanecem consultaveis e listaveis para
+preservar referencias historicas.
+
+## Category / CostCenter
+
+Category e CostCenter sao aggregates independentes e pertencem a exatamente uma
+Company por `companyId` imutavel. Cada um contem somente `id: Long`,
+`companyId: Long`, `name: String` e `active: boolean`. O nome usa
+`String.strip()`, e obrigatorio, nao branco, limitado a 200 caracteres e pode
+ser duplicado. A criacao e ativa e `deactivate()` e a unica transicao deste
+slice. Inativos continuam consultaveis/listaveis para preservar o historico.
+Nao ha codigo, hierarquia ou tipo PAYABLE/RECEIVABLE.
+
+## Partner
+
+Partner é global, sem vínculo com Company, e contém somente `id: Long`,
+`name: String`, `document: Document`, `roles: Set<PartnerRole>` e
+`active: boolean`. `name` usa `String.strip()`, é obrigatório, não branco,
+limitado a 200 caracteres e não único. Roles aceitos: `CUSTOMER` e `SUPPLIER`,
+com ao menos um papel. Criação produz Partner ativo; `deactivate()` é a única
+transição deste slice e não remove o registro. Partner inativo continua
+consultável para preservar referências históricas.
 
 ## Company / Branch
 

@@ -26,6 +26,10 @@ Codex must use the repository documentation as the source of truth and must not 
 - Maven Failsafe for integration tests
 - PostgreSQL Testcontainers for persistence integration tests
 
+Java changes must be Spotless compliant. Run `./mvnw spotless:apply` (or
+`.\mvnw.cmd spotless:apply` on Windows) before final validation when Java files
+change.
+
 Authentication is provided by an external service and is intentionally pending.
 
 Do not implement authentication until `docs/architecture/authentication.md` is completed.
@@ -120,14 +124,11 @@ unless there is a concrete, documented need.
 
 Financial account lifecycle is controlled by domain behavior.
 
-Prefer:
-- `conta.aprovar(...)`
-- `conta.rejeitar(...)`
-- `conta.cancelar(...)`
+Prefer explicit domain transition methods such as `approve()` and `reject()`.
 
 Do not change lifecycle through generic status setters.
 
-Before modifying `ContaFinanceira` lifecycle, read:
+Before modifying `FinancialAccount` lifecycle, read:
 
 - `docs/domain/conta-financeira.md`
 - `docs/domain/state-machine.md`
@@ -135,11 +136,11 @@ Before modifying `ContaFinanceira` lifecycle, read:
 
 Persisted statuses are:
 
-- RASCUNHO
-- PENDENTE_APROVACAO
-- APROVADA
-- QUITADA
-- CANCELADA
+- DRAFT
+- PENDING_APPROVAL
+- APPROVED
+- SETTLED
+- CANCELLED
 
 Do not introduce other persisted main statuses without a documented decision.
 
@@ -156,9 +157,9 @@ Schema evolution:
 Database identifiers use camelCase.
 
 Examples:
-- `"contaFinanceira"`
-- `"empresaId"`
-- `"dataVencimento"`
+- `"financialAccount"`
+- `"companyId"`
+- `"issueDate"`
 
 Do not introduce snake_case.
 

@@ -46,6 +46,16 @@ For non-trivial changes, ask Codex to:
 
 ## Implementation
 
+Java formatting is enforced by Spotless. Apply and check it with:
+
+```powershell
+.\mvnw.cmd spotless:apply
+.\mvnw.cmd spotless:check
+```
+
+`spotless:check` is also bound to Maven `validate`, so `test`, `package`, and
+`verify` reject unformatted Java.
+
 After approving the plan, give Codex the task again with:
 
 - approved decisions;

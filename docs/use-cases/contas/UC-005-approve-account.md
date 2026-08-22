@@ -2,6 +2,6 @@
 
 Permissão: `CONTA_APROVAR`.
 
-PENDENTE_APROVACAO -> APROVADA. Usuário deve ser aprovador válido e diferente do solicitante. Um aprovador é suficiente.
+`PENDING_APPROVAL` -> `APPROVED`. O `ApprovalActor` deve ser elegível por `ApprovalEligibility` para `CONTA_APROVAR` na Company e diferente do `requesterActorId`. Um aprovador é suficiente. A decisão persiste em `ApprovalDecision`; a identidade vem somente de `ApprovalActorContext`.
 
-API: POST `/api/v1/contas/{id}/aprovar`.
+API: POST `/api/v1/companies/{companyId}/financial-accounts/{financialAccountId}/approve`.
